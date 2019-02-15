@@ -158,7 +158,7 @@ class StaticTriangleMesh {
     render(vertex_loc) {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-        gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 8, 0);
+        gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vertex_loc);
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
