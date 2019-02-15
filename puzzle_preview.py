@@ -31,10 +31,10 @@ class PuzzlePreview(object):
                 self.mesh_list.append(mesh)
 
         self.line_loop_list = []
-        for mesh in self.mesh_list:
-            loop_list = mesh.find_boundary_loops()
-            for loop in loop_list:
-                self.line_loop_list.append([mesh.vertex_list[i] for i in loop])
+        #for mesh in self.mesh_list:
+        #    loop_list = mesh.find_boundary_loops()
+        #    for loop in loop_list:
+        #        self.line_loop_list.append([mesh.vertex_list[i] for i in loop])
 
     def render(self):
         glEnable(GL_LIGHTING)
@@ -113,7 +113,7 @@ class PreviewWindow(QtGui.QOpenGLWindow):
         glFlush()
 
     def resizeGL(self, width, height):
-        glViewport(0, 0, width, height)
+        pass #glViewport(0, 0, width, height)
 
     def mousePressEvent(self, event):
         button = event.button()

@@ -92,7 +92,8 @@ class PuzzleDefinitionBase(object):
         mesh_list = self.make_initial_mesh_list()
         generator_mesh_list = self.make_generator_mesh_list()
         
-        for cut_mesh in generator_mesh_list:
+        for i, cut_mesh in enumerate(generator_mesh_list):
+            print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
             new_mesh_list = []
             for mesh in mesh_list:
                 back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
@@ -101,7 +102,9 @@ class PuzzleDefinitionBase(object):
                 if len(front_mesh.triangle_list) > 0:
                     new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
             mesh_list = new_mesh_list
-        
+
+        # TODO: We may need to cull some meshes with total area below a certain threshold to eliminate artifacting.
+
         return mesh_list, generator_mesh_list
     
     def generate_puzzle_file(self):

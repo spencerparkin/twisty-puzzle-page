@@ -59,9 +59,7 @@ class CurvyCopter(PuzzleDefinitionBase):
         
         mesh_list = []
         for sphere in sphere_list:
-            mesh = GeneratorMesh(mesh=sphere.make_mesh(5, 10), transform=AffineTransform().make_rigid_body_motion(sphere.center.normalized(), math.pi))
+            mesh = GeneratorMesh(mesh=sphere.make_mesh(8, 16), transform=AffineTransform().make_rigid_body_motion(sphere.center.normalized(), math.pi))
             mesh_list.append(mesh)
         
-        #return mesh_list
-        
-        return [mesh_list[0]]
+        return mesh_list
