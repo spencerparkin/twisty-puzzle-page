@@ -134,10 +134,12 @@ class PuzzleDefinitionBase(object):
 def main():
     from puzzle_definitions import RubiksCube
     from puzzle_definitions import CurvyCopter
+    from puzzle_definitions import SpencerPuzzle1
 
     puzzle_class_list = [
         RubiksCube,
-        CurvyCopter
+        CurvyCopter,
+        SpencerPuzzle1
     ]
 
     arg_parser = argparse.ArgumentParser()

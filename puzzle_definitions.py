@@ -3,7 +3,7 @@
 import math
 
 from puzzle_generator import PuzzleDefinitionBase
-from math3d_triangle_mesh import TriangleMesh
+from math3d_triangle_mesh import TriangleMesh, Polyhedron
 from math3d_vector import Vector
 from math3d_transform import AffineTransform
 from math3d_sphere import Sphere
@@ -65,3 +65,24 @@ class CurvyCopter(PuzzleDefinitionBase):
             mesh_list.append(mesh)
         
         return mesh_list
+
+class SpencerPuzzle1(PuzzleDefinitionBase):
+    # This puzzle shows an example of a kind of puzzle that was not possible with previous twisty-puzzle engines I've written.
+    # The new engine, however, unlike the old one, cannot handle puzzles with certain physical constraints, such as the Square-1 or Bagua.
+    # On the other hand, it is not limited to only planar or spherical cuts, as shown here.  (Cuts do, however, have to be made from convex shapes.)
+    
+    def __init__(self):
+        super().__init__()
+    
+    def make_generator_mesh_list(self):
+        cube = TriangleMesh.make_polyhedron(Polyhedron.HEXAHEDRON)
+        translation_list = Vector(2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0).sign_permute()
+        mesh_list = [AffineTransform(translation=translation)(cube) for translation in translation_list]
+        return mesh_list
+
+class SpencerPuzzle2(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+        
+    def make_generator_mesh_list(self):
+        pass
