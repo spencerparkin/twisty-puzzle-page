@@ -1,0 +1,10 @@
+// puzzle_vert_shader.txt
+
+attribute vec3 vertex;
+
+uniform mat4 transform_matrix;
+
+void main()
+{
+    gl_Position = transform_matrix * vec4(vertex, 1.0);
+}
