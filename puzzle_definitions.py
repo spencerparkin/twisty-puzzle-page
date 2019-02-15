@@ -40,26 +40,28 @@ class CurvyCopter(PuzzleDefinitionBase):
     
     def make_generator_mesh_list(self):
         
+        radius = (Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0) - Vector(0.0, 1.0, 0.0)).length()
+        
         sphere_list = [
-            Sphere(Vector(-math.sqrt(2.0), -math.sqrt(2.0), 0.0), math.sqrt(2.0)),
-            Sphere(Vector(math.sqrt(2.0), -math.sqrt(2.0), 0.0), math.sqrt(2.0)),
-            Sphere(Vector(-math.sqrt(2.0), math.sqrt(2.0), 0.0), math.sqrt(2.0)),
-            Sphere(Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0), math.sqrt(2.0)),
+            Sphere(Vector(-math.sqrt(2.0), -math.sqrt(2.0), 0.0), radius),
+            Sphere(Vector(math.sqrt(2.0), -math.sqrt(2.0), 0.0), radius),
+            Sphere(Vector(-math.sqrt(2.0), math.sqrt(2.0), 0.0), radius),
+            Sphere(Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0), radius),
             
-            Sphere(Vector(-math.sqrt(2.0), 0.0, -math.sqrt(2.0)), math.sqrt(2.0)),
-            Sphere(Vector(math.sqrt(2.0), 0.0, -math.sqrt(2.0)), math.sqrt(2.0)),
-            Sphere(Vector(-math.sqrt(2.0), 0.0, math.sqrt(2.0)), math.sqrt(2.0)),
-            Sphere(Vector(math.sqrt(2.0), 0.0, math.sqrt(2.0)), math.sqrt(2.0)),
+            Sphere(Vector(-math.sqrt(2.0), 0.0, -math.sqrt(2.0)), radius),
+            Sphere(Vector(math.sqrt(2.0), 0.0, -math.sqrt(2.0)), radius),
+            Sphere(Vector(-math.sqrt(2.0), 0.0, math.sqrt(2.0)), radius),
+            Sphere(Vector(math.sqrt(2.0), 0.0, math.sqrt(2.0)), radius),
             
-            Sphere(Vector(0.0, -math.sqrt(2.0), -math.sqrt(2.0)), math.sqrt(2.0)),
-            Sphere(Vector(0.0, math.sqrt(2.0), -math.sqrt(2.0)), math.sqrt(2.0)),
-            Sphere(Vector(0.0, -math.sqrt(2.0), math.sqrt(2.0)), math.sqrt(2.0)),
-            Sphere(Vector(0.0, math.sqrt(2.0), math.sqrt(2.0)), math.sqrt(2.0))
+            Sphere(Vector(0.0, -math.sqrt(2.0), -math.sqrt(2.0)), radius),
+            Sphere(Vector(0.0, math.sqrt(2.0), -math.sqrt(2.0)), radius),
+            Sphere(Vector(0.0, -math.sqrt(2.0), math.sqrt(2.0)), radius),
+            Sphere(Vector(0.0, math.sqrt(2.0), math.sqrt(2.0)), radius)
         ]
         
         mesh_list = []
         for sphere in sphere_list:
-            mesh = GeneratorMesh(mesh=sphere.make_mesh(12, 24), transform=AffineTransform().make_rigid_body_motion(sphere.center.normalized(), math.pi))
+            mesh = GeneratorMesh(mesh=sphere.make_mesh(subdivision_level=2), transform=AffineTransform().make_rigid_body_motion(sphere.center.normalized(), math.pi))
             mesh_list.append(mesh)
         
         return mesh_list
