@@ -103,7 +103,17 @@ class PuzzleDefinitionBase(object):
                     new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
             mesh_list = new_mesh_list
 
-        # TODO: We may need to cull some meshes with total area below a certain threshold to eliminate artifacting.
+        # Cull meshes with area below a certain threshold to eliminate some artifacting.
+        min_area = 0.001
+        i = 0
+        while i < len(mesh_list):
+            mesh = mesh_list[i]
+            area = mesh.area()
+            print('area = %f' % area)
+            if area < min_area:
+                del mesh_list[i]
+            else:
+                i += 1
 
         return mesh_list, generator_mesh_list
     
