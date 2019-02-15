@@ -109,7 +109,6 @@ class PuzzleDefinitionBase(object):
         while i < len(mesh_list):
             mesh = mesh_list[i]
             area = mesh.area()
-            print('area = %f' % area)
             if area < min_area:
                 del mesh_list[i]
             else:
