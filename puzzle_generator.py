@@ -39,20 +39,26 @@ class ColoredMesh(TriangleMesh):
         super().render()
 
 class GeneratorMesh(TriangleMesh):
-    def __init__(self, mesh=None, transform=None, pick_point=None):
+    def __init__(self, mesh=None, axis=None, angle=None, pick_point=None, name=None):
         super().__init__(mesh=mesh)
-        self.transform = transform if transform is not None else AffineTransform()
+        self.axis = axis if axis is not None else Vector(0.0, 0.0, 1.0)
+        self.angle = angle if angle is not None else 0.0
         self.pick_point = Vector(0.0, 0.0, 0.0) if pick_point is None else pick_point
+        self.name = name if name is not None else '?'
 
     def to_dict(self):
         data = super().to_dict()
-        data['transform'] = self.transform.to_dict()
+        data['name'] = self.name
+        data['axis'] = self.axis.to_dict()
+        data['angle'] = self.angle
         data['pick_point'] = self.pick_point.to_dict()
         return data
     
     def from_dict(self, data):
         super().from_dict(data)
-        self.transform = AffineTransform().from_dict(data.get('transform', {}))
+        self.name = data.get('name', '?')
+        self.axis = Vector().from_dict(data.get('axis', {}))
+        self.angle = data.get('angle', 0.0)
         self.pick_point = Vector().from_dict(data.get('pick_point', {}))
         return self
 

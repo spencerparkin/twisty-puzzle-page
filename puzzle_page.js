@@ -163,8 +163,6 @@ class Puzzle {
             }
         }
 
-        //console.log('min_distance = ' + min_distance.toString());
-
         if(this.selected_generator != j) {
             this.selected_generator = j;
             this.determine_captured_meshes();
@@ -225,8 +223,8 @@ function canvas_mouse_move(event) {
     } else {
         let canvas = $('#puzzle_canvas')[0];
 
-        let x = -1.0 + 2.0 * (1.0 - event.offsetX / canvas.width);
-        let y = -1.0 + 2.0 * event.offsetY / canvas.height;
+        let x = -1.0 + 2.0 * event.offsetX / canvas.width;
+        let y = -1.0 + 2.0 * (1.0 - event.offsetY / canvas.height);
 
         let projected_mouse_point = vec3.create();
         vec3.set(projected_mouse_point, x, y, 0.0);
@@ -294,7 +292,7 @@ function document_ready() {
 	    gl.enable(gl.BLEND);
 	    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	    
-	    puzzle = new Puzzle('RubiksCube');
+	    puzzle = new Puzzle('CurvyCopter');
 	    shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
 	    
 	    Promise.all([
