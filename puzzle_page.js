@@ -16,7 +16,7 @@ class PuzzleMesh extends StaticTriangleMesh {
         this.generate(mesh_data.triangle_list, mesh_data.vertex_list);
         this.color = vec3_create(mesh_data.color);
         this.center = vec3_create(mesh_data.center);
-        this.transform = mat4.create();
+        this.permutation_transform = mat4.create(); // Takes the mesh from the solved state to the scrambled state.
         this.captured = false;
     }
     
@@ -34,7 +34,8 @@ class PuzzleMesh extends StaticTriangleMesh {
             gl.uniform3fv(color_loc, this.color);
         }
 
-        // TODO: Set transform uniform here when we're ready for that part.
+        let permutation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'permutation_transform_matrix');
+        gl.uniformMatrix4fv(permutation_transform_matrix_loc, false, this.permutation_transform);
         
         let vertex_loc = gl.getUniformLocation(shader_program.program, 'vertex');
         
@@ -43,11 +44,23 @@ class PuzzleMesh extends StaticTriangleMesh {
 
     is_captured_by_generator(generator) {
         let vec = vec3.create();
+        let transformed_center = vec3.create();
         for(let i = 0; i < generator.plane_list.length; i++) {
             let plane = generator.plane_list[i];
-            vec3.subtract(vec, this.center, plane.center);
+            vec3.transformMat4(transformed_center, this.center, this.permutation_transform);
+            vec3.subtract(vec, transformed_center, plane.center);
             let distance = vec3.dot(vec, plane.unit_normal);
             if(distance >= 0.0)
+                return false;
+        }
+        return true;
+    }
+
+    is_solved() {
+        let eps = 1e-7;
+        let identity = mat4.create();
+        for(let i = 0; i < 16; i++) {
+            if(Math.abs(identity[i] - this.transform_matrix[i]) >= eps)
                 return false;
         }
         return true;
@@ -188,6 +201,15 @@ class Puzzle {
                 mesh.captured = false;
             }
         }
+    }
+
+    is_solved() {
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(!mesh.is_solved())
+                return false;
+        }
+        return true;
     }
 }
 
