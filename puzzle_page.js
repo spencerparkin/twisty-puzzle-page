@@ -27,6 +27,7 @@ class Puzzle {
     constructor(puzzle_name) {
         this.puzzle_name = puzzle_name;
         this.mesh_list = [];
+        this.orient_matrix = mat4.create();
     }
     
     release() {
@@ -79,8 +80,46 @@ class Puzzle {
     }
 }
 
-function canvas_mouse_wheel_moved(event) {
+function canvas_mouse_wheel_move(event) {
     //...
+}
+
+var dragging = false;
+
+function canvas_mouse_move(event) {
+    if(dragging) {
+        console.log('(' + event.movementX.toString() + ',' + event.movementY.toString() + ')');
+
+        let scale = Math.PI / 100.0;
+
+        let x_angle_delta = -scale * event.movementY;
+        let y_angle_delta = scale * event.movementX;
+
+        let x_axis = vec3.create();
+        vec3.set(x_axis, 1.0, 0.0, 0.0);
+
+        let y_axis = vec3.create();
+        vec3.set(y_axis, 0.0, 1.0, 0.0);
+
+        let x_axis_rotation = mat4.create();
+        mat4.fromRotation(x_axis_rotation, x_angle_delta, x_axis);
+
+        let y_axis_rotation = mat4.create();
+        mat4.fromRotation(y_axis_rotation, y_angle_delta, y_axis);
+
+        mat4.mul(puzzle.orient_matrix, x_axis_rotation, puzzle.orient_matrix);
+        mat4.mul(puzzle.orient_matrix, y_axis_rotation, puzzle.orient_matrix);
+
+        render_scene();
+    }
+}
+
+function canvas_mouse_down(event) {
+    dragging = true;
+}
+
+function canvas_mouse_up(event) {
+    dragging = false;
 }
 
 function render_scene() {
@@ -113,7 +152,8 @@ function render_scene() {
     mat4.lookAt(view_matrix, eye, center, up);
     
     let transform_matrix = mat4.create();
-    mat4.multiply(transform_matrix, proj_matrix, view_matrix);
+    mat4.multiply(transform_matrix, view_matrix, puzzle.orient_matrix);
+    mat4.multiply(transform_matrix, proj_matrix, transform_matrix);
     
     let transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'transform_matrix');
     gl.uniformMatrix4fv(transform_matrix_loc, false, transform_matrix);
@@ -145,6 +185,14 @@ function document_ready() {
 	        $(window).bind('resize', function() {
 	            render_scene();
 	        });
+
+            let canvas = $('#puzzle_canvas')[0];
+
+            canvas.addEventListener('wheel', canvas_mouse_wheel_move);
+            canvas.addEventListener('mousemove', canvas_mouse_move);
+            canvas.addEventListener('mousedown', event => {canvas_mouse_down(event);});
+            canvas.addEventListener('mouseup', canvas_mouse_up);
+
 	        render_scene();
 	    });
         
