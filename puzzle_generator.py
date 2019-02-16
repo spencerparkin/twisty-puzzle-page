@@ -56,6 +56,13 @@ class GeneratorMesh(TriangleMesh):
         self.pick_point = Vector().from_dict(data.get('pick_point', {}))
         return self
 
+    def make_plane_list(self):
+        plane_list = []
+        for triangle in self.yield_triangles():
+            plane = triangle.calc_plane()
+            plane_list.append(plane.to_dict())
+        return plane_list
+
 class PuzzleDefinitionBase(object):
     def __init__(self):
         pass
@@ -130,8 +137,8 @@ class PuzzleDefinitionBase(object):
         final_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
         
         puzzle_data = {
-            'mesh_list': [mesh.to_dict() for mesh in final_mesh_list],
-            'generator_mesh_list': [mesh.to_dict() for mesh in generator_mesh_list]
+            'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
+            'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list]
         }
 
         puzzle_path = 'puzzles/' + self.__class__.__name__ + '.json'
