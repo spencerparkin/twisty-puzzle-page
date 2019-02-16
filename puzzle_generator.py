@@ -103,6 +103,13 @@ class PuzzleDefinitionBase(object):
                     new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
             mesh_list = new_mesh_list
 
+        # In the strictest sense, at this point, the meshes are not necessarily cut up as much as they need to be,
+        # but what we've done thus far is going to have to suffice.  What do I mean by this?  Well, you could,
+        # for example, provide just 2 generator shapes, cut the base mesh against these, but still not have the
+        # puzzle fully cut, because additional cuts may be possible using one of these generators after applying
+        # the other generator to actually transform the meshes.  I'm going to assume here, however, that one cut
+        # from each generator is going to be enough to fully cut the puzzle.
+
         # Cull meshes with area below a certain threshold to eliminate some artifacting.
         min_area = 0.001
         i = 0
