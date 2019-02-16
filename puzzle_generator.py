@@ -39,18 +39,21 @@ class ColoredMesh(TriangleMesh):
         super().render()
 
 class GeneratorMesh(TriangleMesh):
-    def __init__(self, mesh=None, transform=None):
+    def __init__(self, mesh=None, transform=None, pick_point=None):
         super().__init__(mesh=mesh)
         self.transform = transform if transform is not None else AffineTransform()
+        self.pick_point = Vector(0.0, 0.0, 0.0) if pick_point is None else pick_point
 
     def to_dict(self):
         data = super().to_dict()
         data['transform'] = self.transform.to_dict()
+        data['pick_point'] = self.pick_point.to_dict()
         return data
     
     def from_dict(self, data):
         super().from_dict(data)
         self.transform = AffineTransform().from_dict(data.get('transform', {}))
+        self.pick_point = Vector().from_dict(data.get('pick_point', {}))
         return self
 
 class PuzzleDefinitionBase(object):

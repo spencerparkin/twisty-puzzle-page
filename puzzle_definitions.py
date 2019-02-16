@@ -22,12 +22,12 @@ class RubiksCube(PuzzleDefinitionBase):
         b_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, -1.0 / 3.0), Vector(0.0, 0.0, 1.0), 4.0, 4)
         f_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 1.0 / 3.0), Vector(0.0, 0.0, -1.0), 4.0, 4)
         
-        l_cut_disk = GeneratorMesh(mesh=l_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(-1.0, 0.0, 0.0), math.pi / 2.0))
-        r_cut_disk = GeneratorMesh(mesh=r_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi / 2.0))
-        d_cut_disk = GeneratorMesh(mesh=d_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, -1.0, 0.0), math.pi / 2.0))
-        u_cut_disk = GeneratorMesh(mesh=u_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0))
-        b_cut_disk = GeneratorMesh(mesh=b_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, 0.0, -1.0), math.pi / 2.0))
-        f_cut_disk = GeneratorMesh(mesh=f_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, 0.0, 1.0), math.pi / 2.0))
+        l_cut_disk = GeneratorMesh(mesh=l_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(-1.0, 0.0, 0.0), math.pi / 2.0), pick_point=Vector(1.0, 0.0, 0.0))
+        r_cut_disk = GeneratorMesh(mesh=r_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi / 2.0), pick_point=Vector(-1.0, 0.0, 0.0))
+        d_cut_disk = GeneratorMesh(mesh=d_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, -1.0, 0.0), math.pi / 2.0), pick_point=Vector(0.0, 1.0, 0.0))
+        u_cut_disk = GeneratorMesh(mesh=u_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0), pick_point=Vector(0.0, -1.0, 0.0))
+        b_cut_disk = GeneratorMesh(mesh=b_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, 0.0, -1.0), math.pi / 2.0), pick_point=Vector(0.0, 0.0, 1.0))
+        f_cut_disk = GeneratorMesh(mesh=f_cut_disk, transform=AffineTransform().make_rigid_body_motion(Vector(0.0, 0.0, 1.0), math.pi / 2.0), pick_point=Vector(0.0, 0.0, -1.0))
         
         return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
     
@@ -61,7 +61,7 @@ class CurvyCopter(PuzzleDefinitionBase):
         
         mesh_list = []
         for sphere in sphere_list:
-            mesh = GeneratorMesh(mesh=sphere.make_mesh(subdivision_level=2), transform=AffineTransform().make_rigid_body_motion(sphere.center.normalized(), math.pi))
+            mesh = GeneratorMesh(mesh=sphere.make_mesh(subdivision_level=2), transform=AffineTransform().make_rigid_body_motion(sphere.center.normalized(), math.pi), pick_point=sphere.center)
             mesh_list.append(mesh)
         
         return mesh_list
@@ -78,6 +78,7 @@ class SpencerPuzzle1(PuzzleDefinitionBase):
         cube = TriangleMesh.make_polyhedron(Polyhedron.HEXAHEDRON)
         translation_list = Vector(2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0).sign_permute()
         mesh_list = [AffineTransform(translation=translation)(cube) for translation in translation_list]
+        # TODO: We're not done yet.  Use GeneratorMesh class here.
         return mesh_list
 
 class SpencerPuzzle2(PuzzleDefinitionBase):

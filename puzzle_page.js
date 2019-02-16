@@ -88,8 +88,6 @@ var dragging = false;
 
 function canvas_mouse_move(event) {
     if(dragging) {
-        console.log('(' + event.movementX.toString() + ',' + event.movementY.toString() + ')');
-
         let scale = Math.PI / 100.0;
 
         let x_angle_delta = -scale * event.movementY;
@@ -111,6 +109,18 @@ function canvas_mouse_move(event) {
         mat4.mul(puzzle.orient_matrix, y_axis_rotation, puzzle.orient_matrix);
 
         render_scene();
+    } else {
+        let canvas = $('#puzzle_canvas')[0];
+
+        let x = -1.0 + 2.0 * event.offsetX / canvas.width;
+        let y = -1.0 + 2.0 * (1.0 - event.offsetY / canvas.height);
+
+        let transform_matrix = calc_transform_matrix(canvas);
+
+        // Transform pick points into projection space, then measure
+        // there against mouse point.
+
+        //...
     }
 }
 
@@ -122,39 +132,42 @@ function canvas_mouse_up(event) {
     dragging = false;
 }
 
+function calc_transform_matrix(canvas) {
+    let aspect_ratio = canvas.width / canvas.height;
+
+    let proj_matrix = mat4.create();
+    mat4.perspective(proj_matrix, 60.0 * Math.PI / 180.0, aspect_ratio, 1.0, null);
+
+    let eye = vec3.create();
+    vec3.set(eye, 0.0, 0.0, -5.0);
+
+    let center = vec3.create();
+    vec3.set(center, 0.0, 0.0, 0.0);
+
+    let up = vec3.create();
+    vec3.set(up, 0.0, 1.0, 0.0);
+
+    let view_matrix = mat4.create();
+    mat4.lookAt(view_matrix, eye, center, up);
+
+    let transform_matrix = mat4.create();
+    mat4.multiply(transform_matrix, view_matrix, puzzle.orient_matrix);
+    mat4.multiply(transform_matrix, proj_matrix, transform_matrix);
+
+    return transform_matrix;
+}
+
 function render_scene() {
-    
     let canvas = $('#puzzle_canvas')[0];
-    
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    
-    let aspect_ratio = canvas.width / canvas.height;
-    
+
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     gl.useProgram(shader_program.program);
     
-    let proj_matrix = mat4.create();
-    mat4.perspective(proj_matrix, 60.0 * Math.PI / 180.0, aspect_ratio, 1.0, null);
-    
-    let eye = vec3.create();
-    vec3.set(eye, 0.0, 0.0, -5.0);
-    
-    let center = vec3.create();
-    vec3.set(center, 0.0, 0.0, 0.0);
-    
-    let up = vec3.create();
-    vec3.set(up, 0.0, 1.0, 0.0);
-    
-    let view_matrix = mat4.create();
-    mat4.lookAt(view_matrix, eye, center, up);
-    
-    let transform_matrix = mat4.create();
-    mat4.multiply(transform_matrix, view_matrix, puzzle.orient_matrix);
-    mat4.multiply(transform_matrix, proj_matrix, transform_matrix);
-    
+    let transform_matrix = calc_transform_matrix(canvas);
     let transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'transform_matrix');
     gl.uniformMatrix4fv(transform_matrix_loc, false, transform_matrix);
     
