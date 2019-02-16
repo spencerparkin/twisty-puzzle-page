@@ -4,22 +4,70 @@ var gl = undefined;
 var puzzle = undefined;
 var shader_program = undefined;
 
+function vec3_create(data) {
+    let vec = vec3.create();
+    vec3.set(vec, data.x, data.y, data.z);
+    return vec;
+}
+
 class PuzzleMesh extends StaticTriangleMesh {
-    constructor() {
+    constructor(mesh_data) {
         super();
-        this.color = vec3.create();
+        this.generate(mesh_data.triangle_list, mesh_data.vertex_list);
+        this.color = vec3_create(mesh_data.color);
+        this.center = vec3_create(mesh_data.center);
         this.transform = mat4.create();
+        this.captured = false;
     }
     
     render() {
+
         let color_loc = gl.getUniformLocation(shader_program.program, 'color');
-        gl.uniform3fv(color_loc, this.color);
-        
+
+        if(this.captured) {
+            let highlight_color = vec3.create();
+            vec3.set(highlight_color, 1.0, 1.0, 1.0);
+            vec3.add(highlight_color, this.color, highlight_color);
+            vec3.scale(highlight_color, highlight_color, 0.5);
+            gl.uniform3fv(color_loc, highlight_color);
+        } else {
+            gl.uniform3fv(color_loc, this.color);
+        }
+
         // TODO: Set transform uniform here when we're ready for that part.
         
         let vertex_loc = gl.getUniformLocation(shader_program.program, 'vertex');
         
         super.render(vertex_loc);
+    }
+
+    is_captured_by_generator(generator) {
+        let vec = vec3.create();
+        for(let i = 0; i < generator.plane_list.length; i++) {
+            let plane = generator.plane_list[i];
+            vec3.subtract(vec, this.center, plane.center);
+            let distance = vec3.dot(vec, plane.unit_normal);
+            if(distance >= 0.0)
+                return false;
+        }
+        return true;
+    }
+}
+
+class PuzzleGenerator {
+    constructor(generator_data) {
+        this.pick_point = vec3_create(generator_data.pick_point);
+        this.plane_list = [];
+        for(let i = 0; i < generator_data.plane_list.length; i++) {
+            let plane_data = generator_data.plane_list[i];
+            let center = vec3_create(plane_data.center);
+            let unit_normal = vec3_create(plane_data.unit_normal);
+            let plane = {'center': center, 'unit_normal': unit_normal}
+            this.plane_list.push(plane);
+        }
+    }
+
+    release() {
     }
 }
 
@@ -27,10 +75,18 @@ class Puzzle {
     constructor(puzzle_name) {
         this.puzzle_name = puzzle_name;
         this.mesh_list = [];
+        this.generator_list = [];
         this.orient_matrix = mat4.create();
+        this.selected_generator = -1;
     }
     
     release() {
+        for(let i = 0; i < this.generator_list.length; i++) {
+            let generator = this.generator_list[i];
+            generator.release();
+        }
+        this.generator_list = [];
+
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             mesh.release();
@@ -52,14 +108,14 @@ class Puzzle {
                         let mesh_list = puzzle_data['mesh_list'];
                         for(let i = 0; i < mesh_list.length; i++) {
                             let mesh_data = mesh_list[i];
-                            let mesh = new PuzzleMesh();
-                            vec3.set(mesh.color,
-                                mesh_data['color']['x'],
-                                mesh_data['color']['y'],
-                                mesh_data['color']['z']
-                            );
-                            mesh.generate(mesh_data.triangle_list, mesh_data.vertex_list);
+                            let mesh = new PuzzleMesh(mesh_data);
                             this.mesh_list.push(mesh);
+                        }
+                        let generator_list = puzzle_data['generator_mesh_list'];
+                        for(let i = 0; i < generator_list.length; i++) {
+                            let generator_data = generator_list[i];
+                            let generator = new PuzzleGenerator(generator_data);
+                            this.generator_list.push(generator);
                         }
                         resolve();
                     }
@@ -73,9 +129,66 @@ class Puzzle {
     }
     
     render() {
+        gl.useProgram(shader_program.program);
+
+        let canvas = $('#puzzle_canvas')[0];
+        let transform_matrix = calc_transform_matrix(canvas);
+        let transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'transform_matrix');
+        gl.uniformMatrix4fv(transform_matrix_loc, false, transform_matrix);
+
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             mesh.render();
+        }
+    }
+
+    pick_generator(projected_mouse_point) {
+        let canvas = $('#puzzle_canvas')[0];
+        let transform_matrix = calc_transform_matrix(canvas);
+
+        let min_distance = 0.3;
+        let j = -1;
+        for(let i = 0; i < this.generator_list.length; i++) {
+            let generator = this.generator_list[i];
+
+            let projected_center = vec3.create();
+            vec3.transformMat4(projected_center, generator.pick_point, transform_matrix);
+
+            projected_center[2] = 0.0;
+
+            let distance = vec3.distance(projected_center, projected_mouse_point);
+            if(distance < min_distance) {
+                min_distance = distance;
+                j = i;
+            }
+        }
+
+        //console.log('min_distance = ' + min_distance.toString());
+
+        if(this.selected_generator != j) {
+            this.selected_generator = j;
+            this.determine_captured_meshes();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    determine_captured_meshes() {
+        if(this.selected_generator >= 0) {
+            // Generator meshes are always convex shapes, so here, the captured
+            // meshes are all those whose centers lie on the back of every generator plane.
+            let generator = this.generator_list[this.selected_generator];
+            for(let i = 0; i < this.mesh_list.length; i++) {
+                let mesh = this.mesh_list[i];
+                mesh.captured = mesh.is_captured_by_generator(generator);
+            }
+        } else {
+            // No generator is selected, so no meshes are captured.
+            for(let i = 0; i < this.mesh_list.length; i++) {
+                let mesh = this.mesh_list[i];
+                mesh.captured = false;
+            }
         }
     }
 }
@@ -112,15 +225,14 @@ function canvas_mouse_move(event) {
     } else {
         let canvas = $('#puzzle_canvas')[0];
 
-        let x = -1.0 + 2.0 * event.offsetX / canvas.width;
-        let y = -1.0 + 2.0 * (1.0 - event.offsetY / canvas.height);
+        let x = -1.0 + 2.0 * (1.0 - event.offsetX / canvas.width);
+        let y = -1.0 + 2.0 * event.offsetY / canvas.height;
 
-        let transform_matrix = calc_transform_matrix(canvas);
+        let projected_mouse_point = vec3.create();
+        vec3.set(projected_mouse_point, x, y, 0.0);
 
-        // Transform pick points into projection space, then measure
-        // there against mouse point.
-
-        //...
+        if(puzzle.pick_generator(projected_mouse_point))
+            render_scene();
     }
 }
 
@@ -164,12 +276,6 @@ function render_scene() {
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
-    gl.useProgram(shader_program.program);
-    
-    let transform_matrix = calc_transform_matrix(canvas);
-    let transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'transform_matrix');
-    gl.uniformMatrix4fv(transform_matrix_loc, false, transform_matrix);
     
     puzzle.render();
 }
