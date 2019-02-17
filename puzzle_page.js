@@ -424,7 +424,7 @@ function document_ready() {
 	    gl.enable(gl.CULL_FACE);
 	    gl.cullFace(gl.BACK);
 	    
-	    puzzle = new Puzzle('RubiksCube');
+	    puzzle = new Puzzle('CurvyCopter');
 	    shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
 	    
 	    Promise.all([

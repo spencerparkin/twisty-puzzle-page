@@ -12,7 +12,6 @@ class PuzzleServer(object):
     def default(self, **kwargs):
         return cherrypy.lib.static.serve_file(self.root_dir + '/puzzle_page.html', content_type='text/html')
 
-
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def puzzle_list(self, **kwargs):

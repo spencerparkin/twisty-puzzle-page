@@ -134,6 +134,11 @@ class PuzzleDefinitionBase(object):
             else:
                 i += 1
 
+        # TODO: To solve the ugly seem problem with the CurvyCopter, here we might
+        #       shrink all meshes toward their centers just a bit to create a better
+        #       looking seem.  Faces of these puzzles naturally have borders anyway,
+        #       and you want the puzzle recognizable when solved.
+
         return mesh_list, generator_mesh_list
     
     def generate_puzzle_file(self):
