@@ -4,8 +4,9 @@ attribute vec3 vertex;
 
 uniform mat4 transform_matrix;
 uniform mat4 permutation_transform_matrix;
+uniform mat4 animation_transform_matrix;
 
 void main()
 {
-    gl_Position = transform_matrix * permutation_transform_matrix * vec4(vertex, 1.0);
+    gl_Position = transform_matrix * animation_transform_matrix * permutation_transform_matrix * vec4(vertex, 1.0);
 }

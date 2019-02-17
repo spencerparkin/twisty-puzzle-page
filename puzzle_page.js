@@ -3,6 +3,8 @@
 var gl = undefined;
 var puzzle = undefined;
 var shader_program = undefined;
+var animation_render_time = undefined;
+var frames_per_second = 60.0;
 
 function vec3_create(data) {
     let vec = vec3.create();
@@ -17,14 +19,32 @@ class PuzzleMesh extends StaticTriangleMesh {
         this.color = vec3_create(mesh_data.color);
         this.center = vec3_create(mesh_data.center);
         this.permutation_transform = mat4.create(); // Takes the mesh from the solved state to the scrambled state.
-        this.captured = false;
+        this.animation_axis = vec3_create({x: 1.0, y: 0.0, z: 0.0});
+        this.animation_angle = 0.0;
+        this.highlight = false;
     }
-    
+
+    is_animating() {
+        return (this.animation_angle == 0.0) ? false : true;
+    }
+
+    advance_animation() {
+        let radians_per_second = Math.PI;
+        let angle_delta = radians_per_second / frames_per_second;
+        if(this.animation_angle > angle_delta) {
+            this.animation_angle -= angle_delta;
+        } else if(this.animation_angle < -angle_delta) {
+            this.animation_angle += angle_delta;
+        } else {
+            this.animation_angle = 0.0;
+        }
+    }
+
     render() {
 
         let color_loc = gl.getUniformLocation(shader_program.program, 'color');
 
-        if(this.captured) {
+        if(this.highlight) {
             let highlight_color = vec3.create();
             vec3.set(highlight_color, 1.0, 1.0, 1.0);
             vec3.add(highlight_color, this.color, highlight_color);
@@ -36,7 +56,14 @@ class PuzzleMesh extends StaticTriangleMesh {
 
         let permutation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'permutation_transform_matrix');
         gl.uniformMatrix4fv(permutation_transform_matrix_loc, false, this.permutation_transform);
-        
+
+        let animation_transform = mat4.create();
+        if(this.animation_angle != 0.0)
+            mat4.fromRotation(animation_transform, this.animation_angle, this.animation_axis);
+
+        let animation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'animation_transform_matrix');
+        gl.uniformMatrix4fv(animation_transform_matrix_loc, false, animation_transform);
+
         let vertex_loc = gl.getUniformLocation(shader_program.program, 'vertex');
         
         super.render(vertex_loc);
@@ -70,6 +97,8 @@ class PuzzleMesh extends StaticTriangleMesh {
 class PuzzleGenerator {
     constructor(generator_data) {
         this.pick_point = vec3_create(generator_data.pick_point);
+        this.axis = vec3_create(generator_data.axis);
+        this.angle = generator_data.angle;
         this.plane_list = [];
         for(let i = 0; i < generator_data.plane_list.length; i++) {
             let plane_data = generator_data.plane_list[i];
@@ -84,6 +113,25 @@ class PuzzleGenerator {
     }
 }
 
+class PuzzleMove {
+    constructor(generator, inverse) {
+        this.generator = generator;
+        this.inverse = inverse;
+    }
+
+    apply() {
+        let permutation_transform = mat4.create();
+        mat4.fromRotation(permutation_transform, this.inverse ? -this.generator.angle : this.generator.angle, this.generator.axis);
+
+        // The puzzle must not be animating at this moment for this to work.
+        puzzle.for_captured_meshes(this.generator, mesh => {
+            mat4.multiply(mesh.permutation_transform, permutation_transform, mesh.permutation_transform);
+            vec3.copy(mesh.animation_axis, this.generator.axis);
+            mesh.animation_angle = this.inverse ? this.generator.angle : -this.generator.angle;
+        });
+    }
+}
+
 class Puzzle {
     constructor(puzzle_name) {
         this.puzzle_name = puzzle_name;
@@ -91,6 +139,7 @@ class Puzzle {
         this.generator_list = [];
         this.orient_matrix = mat4.create();
         this.selected_generator = -1;
+        this.move_queue = [];
     }
     
     release() {
@@ -105,6 +154,8 @@ class Puzzle {
             mesh.release();
         }
         this.mesh_list = [];
+
+        this.move_queue = [];
     }
     
     promise() {
@@ -178,43 +229,100 @@ class Puzzle {
 
         if(this.selected_generator != j) {
             this.selected_generator = j;
-            this.determine_captured_meshes();
+            this.highlight_captured_meshes();
             return true;
         } else {
             return false;
         }
     }
 
-    determine_captured_meshes() {
-        if(this.selected_generator >= 0) {
-            // Generator meshes are always convex shapes, so here, the captured
-            // meshes are all those whose centers lie on the back of every generator plane.
-            let generator = this.generator_list[this.selected_generator];
-            for(let i = 0; i < this.mesh_list.length; i++) {
-                let mesh = this.mesh_list[i];
-                mesh.captured = mesh.is_captured_by_generator(generator);
-            }
-        } else {
-            // No generator is selected, so no meshes are captured.
-            for(let i = 0; i < this.mesh_list.length; i++) {
-                let mesh = this.mesh_list[i];
-                mesh.captured = false;
+    highlight_captured_meshes() {
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            mesh.highlight = false;
+        }
+
+        let generator = this.get_selected_generator();
+        if(generator) {
+            this.for_captured_meshes(generator, mesh => {
+                mesh.highlight = true;
+            });
+        }
+    }
+
+    for_captured_meshes(generator, func) {
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.is_captured_by_generator(generator)) {
+                func(mesh);
             }
         }
     }
 
+    get_selected_generator() {
+        if(this.selected_generator >= 0)
+            return this.generator_list[this.selected_generator];
+        return undefined;
+    }
+
     is_solved() {
-        for(let i = 0; i < this.mesh_list.length; i++) {
-            let mesh = this.mesh_list[i];
-            if(!mesh.is_solved())
-                return false;
+        let unsolved_mesh = this.mesh_list.find(mesh => {
+            return !mesh.is_solved();
+        });
+        return unsolved_mesh ? false : true;
+    }
+
+    is_animating() {
+        let animating_mesh = this.mesh_list.find(mesh => {
+            return mesh.is_animating();
+        });
+        return animating_mesh ? true : false;
+    }
+
+    advance_animation() {
+        if(this.is_animating()) {
+            this.mesh_list.forEach(mesh => {
+                mesh.advance_animation();
+            });
+            return true;
+        } else if(this.move_queue.length > 0) {
+            let move = this.move_queue.shift();
+            move.apply();
+            // TODO: If flagged for history, the move should be put on a history list for undo/redo purposes.
+            return true;
+        } else {
+            return false;
         }
-        return true;
+    }
+}
+
+function interval_callback() {
+    if(puzzle.advance_animation()) {
+
+        frames_per_second = 60.0;   // TODO: Accurately compute this.
+
+        render_scene();
+    } else {
+        animation_render_time = undefined;
     }
 }
 
 function canvas_mouse_wheel_move(event) {
-    //...
+    event.preventDefault();
+
+    let generator = puzzle.get_selected_generator();
+    if(generator) {
+        let move = undefined;
+
+        if(event.deltaY > 0) {
+            move = new PuzzleMove(generator, false);
+        } else if(event.deltaY < 0) {
+            move = new PuzzleMove(generator, true);
+        }
+
+        if(move)
+            puzzle.move_queue.push(move);
+    }
 }
 
 var dragging = false;
@@ -313,8 +421,10 @@ function document_ready() {
 	    gl.enable(gl.DEPTH_TEST);
 	    gl.enable(gl.BLEND);
 	    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	    gl.enable(gl.CULL_FACE);
+	    gl.cullFace(gl.BACK);
 	    
-	    puzzle = new Puzzle('CurvyCopter');
+	    puzzle = new Puzzle('RubiksCube');
 	    shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
 	    
 	    Promise.all([
@@ -333,6 +443,8 @@ function document_ready() {
             canvas.addEventListener('mouseup', canvas_mouse_up);
 
 	        render_scene();
+
+	        setInterval(interval_callback, 10)
 	    });
         
     } catch(error) {
