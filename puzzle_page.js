@@ -446,6 +446,17 @@ function document_ready() {
 
 	        setInterval(interval_callback, 10)
 	    });
+
+	    $.ajax({
+            url: 'puzzle_list',
+            dataType: 'json',
+            success: puzzle_list => {
+                // TODO: Populate drop-down.  But we also need to use this to know which puzzle to get initially.
+            },
+            failure: error => {
+                alert(error);
+            }
+        });
         
     } catch(error) {
         alert('Error: ' + error.toString());
