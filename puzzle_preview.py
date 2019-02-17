@@ -27,7 +27,6 @@ class PuzzlePreview(object):
             puzzle_data = json.loads(json_text)
             for mesh_data in puzzle_data.get('mesh_list', []):
                 mesh = ColoredMesh().from_dict(mesh_data)
-                mesh = AffineTransform(translation=PointCloud(mesh.vertex_list).calc_center().normalized() * 0.2)(mesh)
                 self.mesh_list.append(mesh)
 
         self.line_loop_list = []

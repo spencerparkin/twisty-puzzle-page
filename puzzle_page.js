@@ -266,6 +266,9 @@ class Puzzle {
     }
 
     is_solved() {
+        // This might not actually be accurate, because there may be
+        // more than one solved state of the puzzle, each indistinguishable
+        // from the other.  All solved states would form the kernel of a homomorphism.
         let unsolved_mesh = this.mesh_list.find(mesh => {
             return !mesh.is_solved();
         });

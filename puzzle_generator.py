@@ -38,6 +38,13 @@ class ColoredMesh(TriangleMesh):
         
         super().render()
 
+    def scale(self, scale_factor):
+        center = self.calc_center()
+        for i, vertex in enumerate(self.vertex_list):
+            vector = vertex - center
+            vector = vector * scale_factor
+            self.vertex_list[i] = center + vector
+
 class GeneratorMesh(TriangleMesh):
     def __init__(self, mesh=None, axis=None, angle=None, pick_point=None):
         super().__init__(mesh=mesh)
@@ -134,10 +141,8 @@ class PuzzleDefinitionBase(object):
             else:
                 i += 1
 
-        # TODO: To solve the ugly seem problem with the CurvyCopter, here we might
-        #       shrink all meshes toward their centers just a bit to create a better
-        #       looking seem.  Faces of these puzzles naturally have borders anyway,
-        #       and you want the puzzle recognizable when solved.
+        for mesh in mesh_list:
+            mesh.scale(0.95)
 
         return mesh_list, generator_mesh_list
     
