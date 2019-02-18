@@ -3854,6 +3854,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 6,
+                    "generator_mesh_b": 8
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 4,
+                    "generator_mesh_b": 10
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -10123,6 +10133,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 5,
+                    "generator_mesh_b": 10
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 7,
+                    "generator_mesh_b": 8
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -16392,6 +16412,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 4,
+                    "generator_mesh_b": 11
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 6,
+                    "generator_mesh_b": 9
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -22661,6 +22691,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 7,
+                    "generator_mesh_b": 9
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 5,
+                    "generator_mesh_b": 11
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -28930,6 +28970,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 0,
+                    "generator_mesh_b": 9
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 2,
+                    "generator_mesh_b": 8
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -35199,6 +35249,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 3,
+                    "generator_mesh_b": 8
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 1,
+                    "generator_mesh_b": 9
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -41468,6 +41528,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 2,
+                    "generator_mesh_b": 10
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 0,
+                    "generator_mesh_b": 11
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -47737,6 +47807,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 1,
+                    "generator_mesh_b": 11
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 3,
+                    "generator_mesh_b": 10
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -54006,6 +54086,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 1,
+                    "generator_mesh_b": 4
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 0,
+                    "generator_mesh_b": 5
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -60275,6 +60365,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 2,
+                    "generator_mesh_b": 5
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 3,
+                    "generator_mesh_b": 4
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -66544,6 +66644,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 0,
+                    "generator_mesh_b": 7
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 1,
+                    "generator_mesh_b": 6
+                }
+            },
             "triangle_list": [
                 [
                     0,
@@ -72813,6 +72923,16 @@
                     }
                 }
             ],
+            "special_case_data": {
+                "special_move_a": {
+                    "generator_mesh_a": 3,
+                    "generator_mesh_b": 6
+                },
+                "special_move_b": {
+                    "generator_mesh_a": 2,
+                    "generator_mesh_b": 7
+                }
+            },
             "triangle_list": [
                 [
                     0,

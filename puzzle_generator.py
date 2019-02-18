@@ -154,12 +154,17 @@ class PuzzleDefinitionBase(object):
             'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list]
         }
 
+        self.annotate_puzzle_data(puzzle_data)
+
         puzzle_path = 'puzzles/' + self.__class__.__name__ + '.json'
         with open(puzzle_path, 'w') as handle:
             json_text = json.dumps(puzzle_data, indent=4, separators=(',', ': '), sort_keys=True)
             handle.write(json_text)
         
         return puzzle_path
+
+    def annotate_puzzle_data(self, puzzle_data):
+        pass
 
 def main():
     from puzzle_definitions import RubiksCube
