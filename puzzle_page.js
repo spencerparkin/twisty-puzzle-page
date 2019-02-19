@@ -107,6 +107,7 @@ class PuzzleGenerator {
             let plane = {'center': center, 'unit_normal': unit_normal}
             this.plane_list.push(plane);
         }
+        this.special_case_data = 'special_case_data' in generator_data ? generator_data.special_case_data : undefined;
     }
 
     release() {
@@ -114,27 +115,30 @@ class PuzzleGenerator {
 }
 
 class PuzzleMove {
-    constructor(generator, inverse) {
+    constructor(generator, inverse, override_angle=undefined) {
         this.generator = generator;
         this.inverse = inverse;
+        this.override_angle = override_angle;
     }
 
     apply() {
+        let angle = this.override_angle ? this.override_angle : this.generator.angle;
+        
         let permutation_transform = mat4.create();
-        mat4.fromRotation(permutation_transform, this.inverse ? -this.generator.angle : this.generator.angle, this.generator.axis);
+        mat4.fromRotation(permutation_transform, this.inverse ? -angle : angle, this.generator.axis);
 
         // The puzzle must not be animating at this moment for this to work.
         puzzle.for_captured_meshes(this.generator, mesh => {
             mat4.multiply(mesh.permutation_transform, permutation_transform, mesh.permutation_transform);
             vec3.copy(mesh.animation_axis, this.generator.axis);
-            mesh.animation_angle = this.inverse ? this.generator.angle : -this.generator.angle;
+            mesh.animation_angle = this.inverse ? angle : -angle;
         });
     }
 }
 
 class Puzzle {
     constructor(puzzle_name) {
-        this.puzzle_name = puzzle_name;
+        this.name = puzzle_name;
         this.mesh_list = [];
         this.generator_list = [];
         this.orient_matrix = mat4.create();
@@ -161,7 +165,7 @@ class Puzzle {
     promise() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: 'puzzles/' + this.puzzle_name + '.json',
+                url: 'puzzles/' + this.name + '.json',
                 dataType: 'json',
                 success: puzzle_data => {
                     if('error' in puzzle_data) {
@@ -315,17 +319,73 @@ function canvas_mouse_wheel_move(event) {
 
     let generator = puzzle.get_selected_generator();
     if(generator) {
-        let move = undefined;
-
-        if(event.deltaY > 0) {
-            move = new PuzzleMove(generator, false);
-        } else if(event.deltaY < 0) {
-            move = new PuzzleMove(generator, true);
+        if(puzzle.name == 'CurvyCopter' && (shift_key_down || ctrl_key_down)) {
+            curvy_copter_special_move(event, generator);
+        } else {
+            let move = undefined;
+    
+            if(event.deltaY > 0) {
+                move = new PuzzleMove(generator, false);
+            } else if(event.deltaY < 0) {
+                move = new PuzzleMove(generator, true);
+            }
+    
+            if(move)
+                puzzle.move_queue.push(move);
         }
-
-        if(move)
-            puzzle.move_queue.push(move);
     }
+}
+
+function curvy_copter_special_move(event, generator) {
+    if(event.deltaY === 0)
+        return;
+    
+    let scale = undefined;
+    let special_move = undefined;
+    if(shift_key_down) {
+        special_move = generator.special_case_data.special_move_a;
+        scale = 1.0;
+    } else if(ctrl_key_down) {
+        special_move = generator.special_case_data.special_move_b;
+        scale = -1.0;
+    }
+    
+    let n = vec3_create({x: 1.0, y: 1.0, z: 0.0});
+    let a = vec3_create({x: 1.0, y: 0.0, z: 1.0});
+    let b = vec3_create({x: 0.0, y: 1.0, z: 1.0});
+    
+    vec3.normalize(n, n);
+    
+    let a_projected = vec3.create();
+    let b_projected = vec3.create();
+    
+    vec3.scale(a_projected, n, vec3.dot(a, n));
+    vec3.scale(b_projected, n, vec3.dot(b, n));
+    
+    let a_rejected = vec3.create();
+    let b_rejected = vec3.create();
+    
+    vec3.subtract(a_rejected, a, a_projected);
+    vec3.subtract(b_rejected, b, b_projected);
+    
+    let vec_a = vec3.create();
+    let vec_b = vec3.create();
+    
+    vec3.normalize(vec_a, a_rejected);
+    vec3.normalize(vec_b, b_rejected);
+    
+    let angle = Math.acos(vec3.dot(vec_a, vec_b));
+    
+    let generator_a = puzzle.generator_list[special_move.generator_mesh_a];
+    let generator_b = puzzle.generator_list[special_move.generator_mesh_b];
+    
+    puzzle.move_queue.push(new PuzzleMove(generator_a, false, -angle * scale));
+    puzzle.move_queue.push(new PuzzleMove(generator_b, false, -angle * scale));
+    
+    puzzle.move_queue.push(new PuzzleMove(generator, (event.deltaY < 0) ? true : false));
+    
+    puzzle.move_queue.push(new PuzzleMove(generator_a, false, angle * scale));
+    puzzle.move_queue.push(new PuzzleMove(generator_b, false, angle * scale));
 }
 
 var dragging = false;
@@ -467,3 +527,10 @@ function document_ready() {
 }
 
 $(document).ready(document_ready);
+
+var shift_key_down = false;
+var ctrl_key_down = false;
+$(document).on('keyup keydown', event => {
+    shift_key_down = event.shiftKey;
+    ctrl_key_down = event.ctrlKey;
+});
