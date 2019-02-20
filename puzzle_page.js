@@ -300,6 +300,21 @@ class Puzzle {
             return false;
         }
     }
+    
+    scramble() {
+        // TODO: This doesn't perform the CurvyCopter's special move.
+        let k = -1;
+        for(let i = 0; i < 100; i++) {
+            let j;
+            do {
+                j = Math.round(Math.random() * (this.generator_list.length - 1));
+            } while(j === k);
+            k = j;
+            let generator = this.generator_list[j];
+            let inverse = Math.random() > 0.5 ? true : false;
+            this.move_queue.push(new PuzzleMove(generator, inverse));
+        }
+    }
 }
 
 function interval_callback() {
@@ -430,6 +445,12 @@ function canvas_mouse_down(event) {
 
 function canvas_mouse_up(event) {
     dragging = false;
+}
+
+function canvas_mouse_double_click(event) {
+    if(confirm('Would you like to scramble the puzzle?')) {
+        puzzle.scramble();
+    }
 }
 
 function calc_transform_matrix(canvas) {
@@ -603,6 +624,7 @@ function document_ready() {
                 canvas.addEventListener('mousemove', canvas_mouse_move);
                 canvas.addEventListener('mousedown', canvas_mouse_down);
                 canvas.addEventListener('mouseup', canvas_mouse_up);
+                canvas.addEventListener('dblclick', canvas_mouse_double_click);
     
                 render_scene();
     
