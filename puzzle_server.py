@@ -14,17 +14,14 @@ class PuzzleServer(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def puzzle_list(self, **kwargs):
+    def puzzle_menu(self, **kwargs):
         try:
-            import inspect
-            import puzzle_definitions
-            class_list = inspect.getmembers(puzzle_definitions, inspect.isclass)
-            puzzle_list = []
-            for cls in class_list:
-                cls_str = str(cls)
-                if cls_str.find('puzzle_definitions') >= 0:
-                    puzzle_list.append(cls[0])
-            return puzzle_list
+            menu_list = []
+            for root, dir_list, file_list in os.walk(self.root_dir + '/menu'):
+                for file in file_list:
+                    name, ext = os.path.splitext(file)
+                    menu_list.append(name)
+            return menu_list
         except Exception as ex:
             return {'error': str(ex)}
 

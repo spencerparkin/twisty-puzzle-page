@@ -3,7 +3,6 @@
 var gl = undefined;
 var puzzle = undefined;
 var shader_program = undefined;
-var animation_render_time = undefined;
 var frames_per_second = 60.0;
 
 function vec3_create(data) {
@@ -309,8 +308,6 @@ function interval_callback() {
         frames_per_second = 60.0;   // TODO: Accurately compute this.
 
         render_scene();
-    } else {
-        animation_render_time = undefined;
     }
 }
 
@@ -471,6 +468,103 @@ function render_scene() {
     puzzle.render();
 }
 
+function promise_puzzle_menu() {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: 'puzzle_menu',
+            dataType: 'json',
+            success: puzzle_menu => {
+                let puzzle_menu_div = document.getElementById('puzzle_menu');
+                for(let i = 0; i < puzzle_menu.length; i++) {
+                    let menu_item = puzzle_menu[i];
+                    let menu_item_icon = document.createElement('img');
+                    menu_item_icon.src = 'menu/' + menu_item + '.jpg';
+                    menu_item_icon.classList.add('puzzle_icon');
+                    menu_item_icon.addEventListener('click', () => {
+                        menu_item_clicked(menu_item);
+                    });
+                    puzzle_menu_div.appendChild(menu_item_icon);
+                }
+                puzzle_menu_div.addEventListener('mousemove', menu_mouse_move);
+                puzzle_menu_div.addEventListener('mouseover', menu_mouse_over);
+                puzzle_menu_div.addEventListener('mouseout', menu_mouse_out);
+                setInterval(menu_animate, 10);
+                menu_update();
+                resolve(puzzle_menu[0]);
+            },
+            failure: error => {
+                alert(error);
+                reject();
+            }
+        });
+    });
+}
+
+var puzzle_menu_scroll_target = 0.0;
+var puzzle_menu_scroll = 0.0;
+var puzzle_menu_deploy_target = 0.0;
+var puzzle_menu_deploy = 0.0;
+
+function menu_mouse_move(event) {
+    let puzzle_menu_div = document.getElementById('puzzle_menu');
+    
+    if(event.pageX < puzzle_menu_div.offsetHeight) {
+        puzzle_menu_scroll_target = 0.0;
+    } else if(event.pageX > puzzle_menu_div.offsetWidth - puzzle_menu_div.offsetHeight) {
+        puzzle_menu_scroll_target = 1.0;
+    } else {
+        puzzle_menu_scroll_target = event.pageX / puzzle_menu_div.offsetWidth;
+    }
+}
+
+function menu_mouse_over(event) {
+    puzzle_menu_deploy_target = 1.0;
+}
+
+function menu_mouse_out(event) {
+    puzzle_menu_deploy_target = 0.0;
+}
+
+function menu_update() {
+    let puzzle_menu_div = document.getElementById('puzzle_menu');
+    
+    puzzle_menu_div.style.opacity = puzzle_menu_deploy;
+    
+    let menu_width = puzzle_menu_div.offsetWidth;
+    let icon_width = puzzle_menu_div.children[0].offsetWidth;
+    let total_icon_width = icon_width * puzzle_menu_div.children.length;
+    let left = 0.0;
+    
+    if(total_icon_width < menu_width) {
+        puzzle_menu_scroll = 0.5;
+    }
+    
+    left = (menu_width - total_icon_width) * puzzle_menu_scroll;
+    
+    for(let i = 0; i < puzzle_menu_div.children.length; i++) {
+        let menu_item_icon = puzzle_menu_div.children[i];
+        
+        // It's really confusing to me that they all need to be set to this.
+        menu_item_icon.style.left = left.toString() + 'px';
+    }
+}
+
+function menu_animate() {
+    if(puzzle_menu_scroll != puzzle_menu_scroll_target || puzzle_menu_deploy != puzzle_menu_deploy_target) {
+        let lerp = 0.05;
+        puzzle_menu_scroll = puzzle_menu_scroll + lerp * (puzzle_menu_scroll_target - puzzle_menu_scroll);
+        puzzle_menu_deploy = puzzle_menu_deploy + lerp * (puzzle_menu_deploy_target - puzzle_menu_deploy);
+        menu_update();
+    }
+}
+
+function menu_item_clicked(menu_item) {
+    puzzle.name = menu_item;
+    puzzle.promise().then(() => {
+        render_scene();
+    });
+}
+
 function document_ready() {
     try {
         let canvas = $('#puzzle_canvas')[0];
@@ -487,38 +581,33 @@ function document_ready() {
 	    gl.enable(gl.CULL_FACE);
 	    gl.cullFace(gl.BACK);
 	    
-	    puzzle = new Puzzle('CurvyCopter');
-	    shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
+	    promise_puzzle_menu().then(initial_puzzle => {
 	    
-	    Promise.all([
-	        shader_program.promise(),
-	        puzzle.promise()
-	    ]).then(() => {
-	        $(window).bind('resize', function() {
-	            render_scene();
-	        });
-
-            let canvas = $('#puzzle_canvas')[0];
-
-            canvas.addEventListener('wheel', canvas_mouse_wheel_move);
-            canvas.addEventListener('mousemove', canvas_mouse_move);
-            canvas.addEventListener('mousedown', event => {canvas_mouse_down(event);});
-            canvas.addEventListener('mouseup', canvas_mouse_up);
-
-	        render_scene();
-
-	        setInterval(interval_callback, 10)
-	    });
-
-	    $.ajax({
-            url: 'puzzle_list',
-            dataType: 'json',
-            success: puzzle_list => {
-                // TODO: Populate drop-down.  But we also need to use this to know which puzzle to get initially.
-            },
-            failure: error => {
-                alert(error);
-            }
+            puzzle = new Puzzle(initial_puzzle);
+            
+            shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
+            
+            Promise.all([
+                shader_program.promise(),
+                puzzle.promise()
+            ]).then(() => {
+                
+                $(window).bind('resize', function() {
+                    render_scene();
+                    menu_update();
+                });
+    
+                let canvas = $('#puzzle_canvas')[0];
+    
+                canvas.addEventListener('wheel', canvas_mouse_wheel_move);
+                canvas.addEventListener('mousemove', canvas_mouse_move);
+                canvas.addEventListener('mousedown', canvas_mouse_down);
+                canvas.addEventListener('mouseup', canvas_mouse_up);
+    
+                render_scene();
+    
+                setInterval(interval_callback, 10);
+            });
         });
         
     } catch(error) {

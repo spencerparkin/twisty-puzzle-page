@@ -110,6 +110,7 @@ class CurvyCopter(PuzzleDefinitionBase):
             if (Vector().from_dict(mesh_data['axis']) - axis).length() < eps:
                 return i
 
+'''
 class SpencerPuzzle1(PuzzleDefinitionBase):
     # This puzzle shows an example of a kind of puzzle that was not possible with previous twisty-puzzle engines I've written.
     # The new engine, however, unlike the old one, cannot handle puzzles with certain physical constraints, such as the Square-1 or Bagua.
@@ -131,3 +132,4 @@ class SpencerPuzzle2(PuzzleDefinitionBase):
         
     def make_generator_mesh_list(self):
         pass
+'''
