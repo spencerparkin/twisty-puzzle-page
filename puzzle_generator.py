@@ -7,8 +7,9 @@ import json
 sys.path.append(r'c:\dev\pyMath3d')
 
 from math3d_triangle_mesh import TriangleMesh, Polyhedron
-from math3d_transform import AffineTransform
+from math3d_transform import LinearTransform
 from math3d_vector import Vector
+from math3d_side import Side
 
 class ColoredMesh(TriangleMesh):
     def __init__(self, mesh=None, color=None):
@@ -72,6 +73,14 @@ class GeneratorMesh(TriangleMesh):
             plane = triangle.calc_plane()
             plane_list.append(plane.to_dict())
         return plane_list
+    
+    def captures_mesh(self, mesh):
+        center = mesh.calc_center()
+        return True if self.side(center) == Side.BACK else False
+
+    def transform_mesh(self, mesh):
+        transform = LinearTransform().make_rotation(self.axis, self.angle)
+        return transform(mesh)
 
 class PuzzleDefinitionBase(object):
     def __init__(self):
@@ -112,39 +121,52 @@ class PuzzleDefinitionBase(object):
         mesh_list = self.make_initial_mesh_list()
         generator_mesh_list = self.make_generator_mesh_list()
         
-        for i, cut_mesh in enumerate(generator_mesh_list):
-            print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
-            new_mesh_list = []
-            for mesh in mesh_list:
-                back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
-                if len(back_mesh.triangle_list) > 0:
-                    new_mesh_list.append(ColoredMesh(mesh=back_mesh, color=mesh.color))
-                if len(front_mesh.triangle_list) > 0:
-                    new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
-            mesh_list = new_mesh_list
-
-        # In the strictest sense, at this point, the meshes are not necessarily cut up as much as they need to be,
-        # but what we've done thus far is going to have to suffice.  What do I mean by this?  Well, you could,
-        # for example, provide just 2 generator shapes, cut the base mesh against these, but still not have the
-        # puzzle fully cut, because additional cuts may be possible using one of these generators after applying
-        # the other generator to actually transform the meshes.  Take the Square-1 as an example.  I'm going to
-        # assume here, however, that one cut from each generator is going to be enough to fully cut the puzzle.
-
-        # Cull meshes with area below a certain threshold to eliminate some artifacting.
-        min_area = 0.001
-        i = 0
-        while i < len(mesh_list):
-            mesh = mesh_list[i]
-            area = mesh.area()
-            if area < min_area:
-                del mesh_list[i]
-            else:
-                i += 1
+        cut_pass = 0
+        while True:
+            print('Performing cut pass %d...' % cut_pass)
+            
+            # Cut all the meshes against all the generator meshes.
+            for i, cut_mesh in enumerate(generator_mesh_list):
+                print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
+                new_mesh_list = []
+                for mesh in mesh_list:
+                    back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
+                    if len(back_mesh.triangle_list) > 0:
+                        new_mesh_list.append(ColoredMesh(mesh=back_mesh, color=mesh.color))
+                    if len(front_mesh.triangle_list) > 0:
+                        new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
+                mesh_list = new_mesh_list
+    
+            # Cull meshes with area below a certain threshold to eliminate some artifacting.
+            min_area = 0.001
+            i = 0
+            while i < len(mesh_list):
+                mesh = mesh_list[i]
+                area = mesh.area()
+                if area < min_area:
+                    del mesh_list[i]
+                else:
+                    i += 1
+            
+            # Give the class a chance to transform the meshes for another round of cutting.
+            # Before iteration completes, however, the class needs to make sure all meshes properly placed.
+            if not self.transform_meshes_for_more_cutting(mesh_list, generator_mesh_list, cut_pass):
+                break
+            
+            cut_pass += 1
 
         for mesh in mesh_list:
             mesh.scale(0.95)
 
         return mesh_list, generator_mesh_list
+    
+    def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
+        return False
+    
+    def apply_generator(self, mesh_list, generator_mesh):
+        for i, mesh in enumerate(mesh_list):
+            if generator_mesh.captures_mesh(mesh):
+                mesh_list[i] = generator_mesh.transform_mesh(mesh)
     
     def generate_puzzle_file(self):
         final_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
@@ -165,18 +187,73 @@ class PuzzleDefinitionBase(object):
 
     def annotate_puzzle_data(self, puzzle_data):
         pass
+    
+    def make_face_meshes(self, mesh):
+        face_mesh_list = []
+        plane_list = []
+        color_list = [
+            Vector(1.0, 0.0, 0.0),
+            Vector(0.0, 1.0, 0.0),
+            Vector(0.0, 0.0, 1.0),
+            Vector(1.0, 1.0, 0.0),
+            Vector(1.0, 0.0, 1.0),
+            Vector(0.0, 1.0, 1.0),
+            Vector(1.0, 0.0, 0.5),
+            Vector(1.0, 0.5, 0.0),
+            Vector(0.0, 1.0, 0.5),
+            Vector(0.5, 1.0, 0.0),
+            Vector(0.0, 0.5, 1.0),
+            Vector(0.5, 0.0, 1.0),
+            Vector(0.5, 0.5, 0.5)
+        ]
+        j = 0
+        
+        while len(mesh.triangle_list) > 0:
+            triple = mesh.triangle_list.pop(0)
+            
+            triangle = mesh.make_triangle(triple)
+            triangle_list = [triangle]
+            
+            plane = triangle.calc_plane()
+            plane_list.append(plane)
+            
+            i = 0
+            while i < len(mesh.triangle_list):
+                triangle = mesh.make_triangle(i)
+                if all([plane.side(triangle[i]) == Side.NEITHER for i in range(3)]):
+                    triangle_list.append(triangle)
+                    del mesh.triangle_list[i]
+                else:
+                    i += 1
+            
+            if j < len(color_list):
+                color = color_list[j]
+                j += 1
+            else:
+                color = Vector().random()
+            
+            face_mesh = ColoredMesh(color=color, mesh=TriangleMesh().from_triangle_list(triangle_list))
+            face_mesh_list.append(face_mesh)
+            
+        return face_mesh_list, plane_list
 
 def main():
     from puzzle_definitions import RubiksCube
+    from puzzle_definitions import FusedCube
     from puzzle_definitions import CurvyCopter
     from puzzle_definitions import CurvyCopterPlus
     from puzzle_definitions import HelicopterCube
+    from puzzle_definitions import FlowerCopter
+    from puzzle_definitions import Megaminx
 
     puzzle_class_list = [
         RubiksCube,
+        FusedCube,
         CurvyCopter,
         CurvyCopterPlus,
-        HelicopterCube
+        HelicopterCube,
+        FlowerCopter,
+        Megaminx
     ]
 
     arg_parser = argparse.ArgumentParser()

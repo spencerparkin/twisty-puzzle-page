@@ -31,6 +31,40 @@ class RubiksCube(PuzzleDefinitionBase):
         
         return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
 
+class FusedCube(RubiksCube):
+    def __init__(self):
+        super().__init__()
+    
+    def make_generator_mesh_list(self):
+        mesh_list = super().make_generator_mesh_list()
+        del mesh_list[4]
+        del mesh_list[2]
+        del mesh_list[0]
+        return mesh_list
+
+    def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
+        r_cut_disk = generator_mesh_list[0]
+        u_cut_disk = generator_mesh_list[1]
+        f_cut_disk = generator_mesh_list[2]
+        
+        if cut_pass < 3:
+            self.apply_generator(mesh_list, r_cut_disk)  
+        elif cut_pass == 3:
+            self.apply_generator(mesh_list, r_cut_disk)
+            self.apply_generator(mesh_list, u_cut_disk)
+        elif 3 < cut_pass < 6:
+            self.apply_generator(mesh_list, u_cut_disk)
+        elif cut_pass == 6:
+            self.apply_generator(mesh_list, u_cut_disk)
+            self.apply_generator(mesh_list, f_cut_disk)
+        elif 6 < cut_pass < 9:
+            self.apply_generator(mesh_list, f_cut_disk)
+        elif cut_pass == 9:
+            self.apply_generator(mesh_list, f_cut_disk)
+            return False
+        
+        return True
+
 class CopterBase(PuzzleDefinitionBase):
     def __init__(self):
         super().__init__()
@@ -54,7 +88,7 @@ class CopterBase(PuzzleDefinitionBase):
 
             adjacent_axis_list = []
             for axis in axis_list:
-                if axis.angle_between(generator_axis) < math.pi / 3.0:
+                if math.fabs(axis.angle_between(generator_axis) - math.pi / 4.0) < 1e-5:
                     adjacent_axis_list.append(axis)
             assert(len(adjacent_axis_list) == 2)
 
@@ -142,26 +176,49 @@ class HelicopterCube(CopterBase):
 
         return mesh_list
 
-'''
-class SpencerPuzzle1(PuzzleDefinitionBase):
-    # This puzzle shows an example of a kind of puzzle that was not possible with previous twisty-puzzle engines I've written.
-    # The new engine, however, unlike the old one, cannot handle puzzles with certain physical constraints, such as the Square-1 or Bagua.
-    # On the other hand, it is not limited to only planar or spherical cuts, as shown here.  (Cuts do, however, have to be made from convex shapes.)
-    
+class FlowerCopter(CurvyCopter):
     def __init__(self):
         super().__init__()
-    
+
     def make_generator_mesh_list(self):
-        cube = TriangleMesh.make_polyhedron(Polyhedron.HEXAHEDRON)
-        translation_list = Vector(2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0).sign_permute()
-        mesh_list = [AffineTransform(translation=translation)(cube) for translation in translation_list]
-        # TODO: We're not done yet.  Use GeneratorMesh class here.
+        mesh_list = super().make_generator_mesh_list()
+        
+        radius = math.sqrt(2.0)
+        point_list = [point for point in Vector(1.0, 1.0, 1.0).sign_permute()]
+        for point in point_list:
+            sphere = Sphere(point, radius)
+            mesh = GeneratorMesh(mesh=sphere.make_mesh(subdivision_level=2), axis=point.normalized(), angle=2.0 * math.pi / 3.0, pick_point=point)
+            mesh_list.append(mesh)
+        
         return mesh_list
 
-class SpencerPuzzle2(PuzzleDefinitionBase):
+class Megaminx(PuzzleDefinitionBase):
     def __init__(self):
         super().__init__()
-        
+    
+    def make_initial_mesh_list(self):
+        mesh = TriangleMesh().make_polyhedron(Polyhedron.DODECAHEDRON)
+        face_mesh_list, self.plane_list = self.make_face_meshes(mesh)
+        return face_mesh_list
+
     def make_generator_mesh_list(self):
-        pass
-'''
+        mesh_list = []
+        for plane in self.plane_list:
+            disk = TriangleMesh.make_disk(plane.center.scaled(0.7), -plane.unit_normal, 4.0, 4)
+            mesh = GeneratorMesh(mesh=disk, axis=plane.unit_normal, angle=2.0 * math.pi / 5.0, pick_point=plane.center)
+            mesh_list.append(mesh)
+        return mesh_list
+
+# TODO: Add 4x4 and 2x2.
+# TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
+# TODO: Add Fisher Cube.
+# TODO: Add skewb.
+# TODO: Add mixup cube.
+# TODO: Add pyraminx.
+# TODO: Add the LanLanRex cube.
+# TODO: Puzzles like the Bagua and Square-1 are not only difficult to cut, but they require adherance
+#       to certain physical constraints (i.e., bandaging.)  The cutting problem is not too hard, but
+#       is there a clean solution to the bandaging problem?  The unicorn cube is another good example.
+#       The Son-Mum cube looks interesting.  The WitEden Worm Hole II would be very hard to make.
+#       One way to solve bandaging is to check that no polygon straddles a generator's mesh before
+#       that generator gets applied.
