@@ -30,40 +30,10 @@ class RubiksCube(PuzzleDefinitionBase):
         f_cut_disk = GeneratorMesh(mesh=f_cut_disk, axis=Vector(0.0, 0.0, 1.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 0.0, 1.0))
         
         return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
-    
-class CurvyCopter(PuzzleDefinitionBase):
+
+class CopterBase(PuzzleDefinitionBase):
     def __init__(self):
         super().__init__()
-    
-    def calc_sphere_radius(self):
-        return (Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0) - Vector(0.0, 1.0, 0.0)).length()
-    
-    def make_generator_mesh_list(self):
-        radius = self.calc_sphere_radius()
-
-        sphere_list = [
-            Sphere(Vector(-math.sqrt(2.0), -math.sqrt(2.0), 0.0), radius),
-            Sphere(Vector(math.sqrt(2.0), -math.sqrt(2.0), 0.0), radius),
-            Sphere(Vector(-math.sqrt(2.0), math.sqrt(2.0), 0.0), radius),
-            Sphere(Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0), radius),
-
-            Sphere(Vector(-math.sqrt(2.0), 0.0, -math.sqrt(2.0)), radius),
-            Sphere(Vector(math.sqrt(2.0), 0.0, -math.sqrt(2.0)), radius),
-            Sphere(Vector(-math.sqrt(2.0), 0.0, math.sqrt(2.0)), radius),
-            Sphere(Vector(math.sqrt(2.0), 0.0, math.sqrt(2.0)), radius),
-
-            Sphere(Vector(0.0, -math.sqrt(2.0), -math.sqrt(2.0)), radius),
-            Sphere(Vector(0.0, math.sqrt(2.0), -math.sqrt(2.0)), radius),
-            Sphere(Vector(0.0, -math.sqrt(2.0), math.sqrt(2.0)), radius),
-            Sphere(Vector(0.0, math.sqrt(2.0), math.sqrt(2.0)), radius)
-        ]
-
-        mesh_list = []
-        for sphere in sphere_list:
-            mesh = GeneratorMesh(mesh=sphere.make_mesh(subdivision_level=2), axis=sphere.center.normalized(), angle=math.pi, pick_point=sphere.center.resized(math.sqrt(2.0)))
-            mesh_list.append(mesh)
-        
-        return mesh_list
 
     def annotate_puzzle_data(self, puzzle_data):
 
@@ -113,12 +83,64 @@ class CurvyCopter(PuzzleDefinitionBase):
             if (Vector().from_dict(mesh_data['axis']) - axis).length() < eps:
                 return i
 
+class CurvyCopter(CopterBase):
+    def __init__(self):
+        super().__init__()
+    
+    def calc_sphere_radius(self):
+        return (Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0) - Vector(0.0, 1.0, 0.0)).length()
+    
+    def make_generator_mesh_list(self):
+        radius = self.calc_sphere_radius()
+
+        sphere_list = [
+            Sphere(Vector(-math.sqrt(2.0), -math.sqrt(2.0), 0.0), radius),
+            Sphere(Vector(math.sqrt(2.0), -math.sqrt(2.0), 0.0), radius),
+            Sphere(Vector(-math.sqrt(2.0), math.sqrt(2.0), 0.0), radius),
+            Sphere(Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0), radius),
+
+            Sphere(Vector(-math.sqrt(2.0), 0.0, -math.sqrt(2.0)), radius),
+            Sphere(Vector(math.sqrt(2.0), 0.0, -math.sqrt(2.0)), radius),
+            Sphere(Vector(-math.sqrt(2.0), 0.0, math.sqrt(2.0)), radius),
+            Sphere(Vector(math.sqrt(2.0), 0.0, math.sqrt(2.0)), radius),
+
+            Sphere(Vector(0.0, -math.sqrt(2.0), -math.sqrt(2.0)), radius),
+            Sphere(Vector(0.0, math.sqrt(2.0), -math.sqrt(2.0)), radius),
+            Sphere(Vector(0.0, -math.sqrt(2.0), math.sqrt(2.0)), radius),
+            Sphere(Vector(0.0, math.sqrt(2.0), math.sqrt(2.0)), radius)
+        ]
+
+        mesh_list = []
+        for sphere in sphere_list:
+            mesh = GeneratorMesh(mesh=sphere.make_mesh(subdivision_level=2), axis=sphere.center.normalized(), angle=math.pi, pick_point=sphere.center.resized(math.sqrt(2.0)))
+            mesh_list.append(mesh)
+        
+        return mesh_list
+
 class CurvyCopterPlus(CurvyCopter):
     def __init__(self):
         super().__init__()
     
     def calc_sphere_radius(self):
         return (Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0) - Vector(-0.2, 1.0, 0.0)).length()
+
+class HelicopterCube(CopterBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_generator_mesh_list(self):
+        point_list = [point for point in Vector(0.5, 0.5, 0.0).sign_permute(flip_z=False)]
+        point_list += [point for point in Vector(0.5, 0.0, 0.5).sign_permute(flip_y=False)]
+        point_list += [point for point in Vector(0.0, 0.5, 0.5).sign_permute(flip_x=False)]
+
+        mesh_list = []
+        for point in point_list:
+            normal = point.normalized()
+            disk = TriangleMesh.make_disk(point, -normal, 4.0, 4)
+            mesh = GeneratorMesh(mesh=disk, axis=normal, angle=math.pi, pick_point=point.resized(math.sqrt(2.0)))
+            mesh_list.append(mesh)
+
+        return mesh_list
 
 '''
 class SpencerPuzzle1(PuzzleDefinitionBase):

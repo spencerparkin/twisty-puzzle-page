@@ -170,11 +170,13 @@ def main():
     from puzzle_definitions import RubiksCube
     from puzzle_definitions import CurvyCopter
     from puzzle_definitions import CurvyCopterPlus
+    from puzzle_definitions import HelicopterCube
 
     puzzle_class_list = [
         RubiksCube,
         CurvyCopter,
-        CurvyCopterPlus
+        CurvyCopterPlus,
+        HelicopterCube
     ]
 
     arg_parser = argparse.ArgumentParser()
