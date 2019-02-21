@@ -127,8 +127,8 @@ class PuzzleDefinitionBase(object):
         # but what we've done thus far is going to have to suffice.  What do I mean by this?  Well, you could,
         # for example, provide just 2 generator shapes, cut the base mesh against these, but still not have the
         # puzzle fully cut, because additional cuts may be possible using one of these generators after applying
-        # the other generator to actually transform the meshes.  I'm going to assume here, however, that one cut
-        # from each generator is going to be enough to fully cut the puzzle.
+        # the other generator to actually transform the meshes.  Take the Square-1 as an example.  I'm going to
+        # assume here, however, that one cut from each generator is going to be enough to fully cut the puzzle.
 
         # Cull meshes with area below a certain threshold to eliminate some artifacting.
         min_area = 0.001
@@ -169,12 +169,12 @@ class PuzzleDefinitionBase(object):
 def main():
     from puzzle_definitions import RubiksCube
     from puzzle_definitions import CurvyCopter
-    from puzzle_definitions import SpencerPuzzle1
+    from puzzle_definitions import CurvyCopterPlus
 
     puzzle_class_list = [
         RubiksCube,
         CurvyCopter,
-        SpencerPuzzle1
+        CurvyCopterPlus
     ]
 
     arg_parser = argparse.ArgumentParser()

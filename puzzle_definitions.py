@@ -35,8 +35,11 @@ class CurvyCopter(PuzzleDefinitionBase):
     def __init__(self):
         super().__init__()
     
+    def calc_sphere_radius(self):
+        return (Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0) - Vector(0.0, 1.0, 0.0)).length()
+    
     def make_generator_mesh_list(self):
-        radius = (Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0) - Vector(0.0, 1.0, 0.0)).length()
+        radius = self.calc_sphere_radius()
 
         sphere_list = [
             Sphere(Vector(-math.sqrt(2.0), -math.sqrt(2.0), 0.0), radius),
@@ -109,6 +112,13 @@ class CurvyCopter(PuzzleDefinitionBase):
         for i, mesh_data in enumerate(generator_mesh_list):
             if (Vector().from_dict(mesh_data['axis']) - axis).length() < eps:
                 return i
+
+class CurvyCopterPlus(CurvyCopter):
+    def __init__(self):
+        super().__init__()
+    
+    def calc_sphere_radius(self):
+        return (Vector(math.sqrt(2.0), math.sqrt(2.0), 0.0) - Vector(-0.2, 1.0, 0.0)).length()
 
 '''
 class SpencerPuzzle1(PuzzleDefinitionBase):

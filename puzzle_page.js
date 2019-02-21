@@ -331,7 +331,7 @@ function canvas_mouse_wheel_move(event) {
 
     let generator = puzzle.get_selected_generator();
     if(generator) {
-        if(puzzle.name == 'CurvyCopter' && (shift_key_down || ctrl_key_down)) {
+        if((puzzle.name == 'CurvyCopter' || puzzle.name == 'CurvyCopterPlus') && (shift_key_down || ctrl_key_down)) {
             curvy_copter_special_move(event, generator);
         } else {
             let move = undefined;
