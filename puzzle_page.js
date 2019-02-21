@@ -331,7 +331,7 @@ function canvas_mouse_wheel_move(event) {
 
     let generator = puzzle.get_selected_generator();
     if(generator) {
-        if((puzzle.name == 'CurvyCopter' || puzzle.name == 'CurvyCopterPlus' || puzzle.name == 'HelicopterCube') && (shift_key_down || ctrl_key_down)) {
+        if((puzzle.name == 'CurvyCopter' || puzzle.name == 'CurvyCopterPlus' || puzzle.name == 'HelicopterCube' || puzzle.name == 'FlowerCopter') && (shift_key_down || ctrl_key_down) && generator.special_case_data) {
             curvy_copter_special_move(event, generator);
         } else {
             let move = undefined;
@@ -504,6 +504,12 @@ function promise_puzzle_menu() {
                     menu_item_icon.addEventListener('click', () => {
                         menu_item_clicked(menu_item);
                     });
+                    menu_item_icon.addEventListener('mouseover', () => {
+                        menu_item_mouse_over(menu_item_icon, menu_item, i);
+                    });
+                    menu_item_icon.addEventListener('mouseout', () => {
+                        menu_item_mouse_out();
+                    });
                     puzzle_menu_div.appendChild(menu_item_icon);
                 }
                 puzzle_menu_div.addEventListener('mousemove', menu_mouse_move);
@@ -525,6 +531,7 @@ var puzzle_menu_scroll_target = 0.0;
 var puzzle_menu_scroll = 0.0;
 var puzzle_menu_deploy_target = 0.0;
 var puzzle_menu_deploy = 0.0;
+var puzzle_menu_item_hover = undefined;
 
 function menu_mouse_move(event) {
     let puzzle_menu_div = document.getElementById('puzzle_menu');
@@ -546,10 +553,29 @@ function menu_mouse_out(event) {
     puzzle_menu_deploy_target = 0.0;
 }
 
+function menu_item_mouse_over(menu_item_icon, menu_item, i) {
+    let label = document.getElementById('puzzle_menu_label');
+    label.style.display = 'block';
+    label.innerHTML = menu_item;
+    label.style.left = menu_item_icon.x + 'px';
+    puzzle_menu_item_hover = menu_item_icon;
+}
+
+function menu_item_mouse_out() {
+    let label = document.getElementById('puzzle_menu_label');
+    label.style.display = 'none';
+    puzzle_menu_item_hover = undefined;
+}
+
 function menu_update() {
     let puzzle_menu_div = document.getElementById('puzzle_menu');
+    let label = document.getElementById('puzzle_menu_label');
     
     puzzle_menu_div.style.opacity = puzzle_menu_deploy;
+    label.style.opacity = puzzle_menu_deploy;
+    
+    if(puzzle_menu_item_hover)
+        label.style.left = puzzle_menu_item_hover.x + 'px'; 
     
     let menu_width = puzzle_menu_div.offsetWidth;
     let icon_width = puzzle_menu_div.children[0].offsetWidth;
@@ -570,11 +596,17 @@ function menu_update() {
     }
 }
 
+function lerp_value(value_a, value_b, alpha, eps=1e-10) {
+    let value = value_a + alpha * (value_b - value_a);
+    if(Math.abs(value - value_b) < eps)
+        value = value_b;
+    return value;
+}
+
 function menu_animate() {
     if(puzzle_menu_scroll != puzzle_menu_scroll_target || puzzle_menu_deploy != puzzle_menu_deploy_target) {
-        let lerp = 0.05;
-        puzzle_menu_scroll = puzzle_menu_scroll + lerp * (puzzle_menu_scroll_target - puzzle_menu_scroll);
-        puzzle_menu_deploy = puzzle_menu_deploy + lerp * (puzzle_menu_deploy_target - puzzle_menu_deploy);
+        puzzle_menu_scroll = lerp_value(puzzle_menu_scroll, puzzle_menu_scroll_target, 0.05);
+        puzzle_menu_deploy = lerp_value(puzzle_menu_deploy, puzzle_menu_deploy_target, 0.05);
         menu_update();
     }
 }

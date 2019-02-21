@@ -82,7 +82,8 @@ class CopterBase(PuzzleDefinitionBase):
 
         generator_mesh_list = puzzle_data['generator_mesh_list']
 
-        for i in range(len(generator_mesh_list)):
+        count = 12 #len(generator_mesh_list)
+        for i in range(count):
             mesh_data = generator_mesh_list[i]
             generator_axis = Vector().from_dict(mesh_data['axis'])
 

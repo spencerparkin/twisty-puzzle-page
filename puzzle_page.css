@@ -24,6 +24,19 @@ body {
     white-space: nowrap;
 }
 
+#puzzle_menu_label {
+    z-index: 1;
+    position: absolute;
+    top: 10%;
+    left: 0;
+    color: #ffffff;
+    display: none;
+    background: #555555;
+    text-align: center;
+    padding: 5px 5px;
+    border-radius: 6px;
+}
+
 .puzzle_icon {
     position: relative;
     width: auto;
