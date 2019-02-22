@@ -2,6 +2,7 @@
 
 var gl = undefined;
 var puzzle = undefined;
+var puzzle_sequence_generator = new PuzzleSequenceMoveGenerator();
 var shader_program = undefined;
 var frames_per_second = 60.0;
 
@@ -207,6 +208,21 @@ class Puzzle {
             let mesh = this.mesh_list[i];
             mesh.render();
         }
+    }
+
+    create_move_for_viewer_axis(axis) {
+        vec3.normalize(axis, axis);
+        let inv_orient_matrix = mat4.create();
+        mat4.invert(inv_orient_matrix, this.orient_matrix);
+        vec3.transformMat4(axis, axis, inv_orient_matrix);
+        
+        let generator = this.generator_list.reduce((gen_a, gen_b) => {
+            let dot_a = vec3.dot(gen_a.axis, axis);
+            let dot_b = vec3.dot(gen_b.axis, axis);
+            return (Math.abs(dot_a - 1.0) < Math.abs(dot_b - 1.0)) ? gen_a : gen_b;
+        });
+        
+        return new Move(generator, false);
     }
 
     pick_generator(projected_mouse_point) {
@@ -618,6 +634,15 @@ function menu_item_clicked(menu_item) {
     });
 }
 
+function sequence_input_key_down(event) {
+    if(event.key === 'Enter') {
+        let sequence_input = document.getElementById('puzzle_prompt_input');
+        let sequence_text = sequence_input.value;
+        let move_sequence = puzzle_sequence_generator.generate_move_sequence(sequence_text, puzzle);
+        puzzle.move_queue.concat(move_sequence);
+    }
+}
+
 function document_ready() {
     try {
         let canvas = $('#puzzle_canvas')[0];
@@ -661,6 +686,9 @@ function document_ready() {
                 render_scene();
     
                 setInterval(interval_callback, 10);
+                
+                let sequence_input = document.getElementById('puzzle_prompt_input');
+                sequence_input.addEventListener('onkeydown', sequence_input_key_down);
             });
         });
         
