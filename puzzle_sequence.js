@@ -79,45 +79,45 @@ class TreeNode {
             vec3.set(axis, 0.0, 0.0, -1.0);
         else if(this.identifier === 'F')
             vec3.set(axis, 0.0, 0.0, 1.0);
-        else if(this.identifier in this._all_combos('UL'))
+        else if(this._all_combos('UL').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, 1.0, 0.0);
-        else if(this.identifier in this._all_combos('UR'))
+        else if(this._all_combos('UR').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, 1.0, 0.0);
-        else if(this.identifier in this._all_combos('UB'))
+        else if(this._all_combos('UB').indexOf(this.identifier) >= 0)
             vec3.set(axis, 0.0, 1.0, -1.0);
-        else if(this.identifier in this._all_combos('UF'))
+        else if(this._all_combos('UF').indexOf(this.identifier) >= 0)
             vec3.set(axis, 0.0, 1.0, 1.0);
-        else if(this.identifier in this._all_combos('DL'))
+        else if(this._all_combos('DL').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, -1.0, 0.0);
-        else if(this.identifier in this._all_combos('DR'))
+        else if(this._all_combos('DR').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, -1.0, 0.0);
-        else if(this.identifier in this._all_combos('DB'))
+        else if(this._all_combos('DB').indexOf(this.identifier) >= 0)
             vec3.set(axis, 0.0, -1.0, -1.0);
-        else if(this.identifier in this._all_combos('DF'))
+        else if(this._all_combos('DF').indexOf(this.identifier) >= 0)
             vec3.set(axis, 0.0, -1.0, 1.0);
-        else if(this.identifier in this._all_combos('BL'))
+        else if(this._all_combos('BL').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, 0.0, -1.0);
-        else if(this.identifier in this._all_combos('BR'))
+        else if(this._all_combos('BR').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, 0.0, -1.0);
-        else if(this.identifier in this._all_combos('FL'))
+        else if(this._all_combos('FL').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, 0.0, 1.0);
-        else if(this.identifier in this._all_combos('FR'))
+        else if(this._all_combos('FR').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, 0.0, 1.0);
-        else if(this.identifier in this._all_combos('LDB'))
+        else if(this._all_combos('LDB').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, -1.0, -1.0);
-        else if(this.identifier in this._all_combos('RDB'))
+        else if(this._all_combos('RDB').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, -1.0, -1.0);
-        else if(this.identifier in this._all_combos('LUB'))
+        else if(this._all_combos('LUB').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, 1.0, -1.0);
-        else if(this.identifier in this._all_combos('RUB'))
+        else if(this._all_combos('RUB').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, 1.0, -1.0);
-        else if(this.identifier in this._all_combos('LDF'))
+        else if(this._all_combos('LDF').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, -1.0, 1.0);
-        else if(this.identifier in this._all_combos('RDF'))
+        else if(this._all_combos('RDF').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, -1.0, 1.0);
-        else if(this.identifier in this._all_combos('LUF'))
+        else if(this._all_combos('LUF').indexOf(this.identifier) >= 0)
             vec3.set(axis, -1.0, 1.0, 1.0);
-        else if(this.identifier in this._all_combos('RUF'))
+        else if(this._all_combos('RUF').indexOf(this.identifier) >= 0)
             vec3.set(axis, 1.0, 1.0, 1.0);
         else
             throw 'Unknown identifier: ' + this.identifier;
@@ -127,15 +127,17 @@ class TreeNode {
     
     _all_combos(text) {
         let combo_list = [];
-        a = text.charAt(0);
-        b = text.slice(1);
+        let a = text.charAt(0);
+        let b = text.slice(1);
         if(b.length === 1) {
             combo_list = [a + b, b + a];
         } else {
             let sub_combo_list = this._all_combos(b);
-            for(let i = 0; i < sub_combo_list.length; i++)
+            for(let i = 0; i < sub_combo_list.length; i++) {
                 for(let j = 0; j < sub_combo_list[i].length; j++)
                     combo_list.push(sub_combo_list[i].slice(0, j) + a + sub_combo_list[i].slice(j));
+                combo_list.push(sub_combo_list[i] + a);
+            }
         }
         return combo_list;
     }
