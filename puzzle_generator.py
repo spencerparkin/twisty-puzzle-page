@@ -172,6 +172,8 @@ class PuzzleDefinitionBase(object):
         final_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
         
         puzzle_data = {
+            # One possible problem here is that if a mesh (essentially a sticker) is not "convex enough" the center
+            # won't be a point on the interior of the mesh, which is what we need here.  So far it's not been a problem.
             'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
             'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list]
         }
