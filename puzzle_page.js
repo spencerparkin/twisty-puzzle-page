@@ -134,6 +134,10 @@ class PuzzleMove {
             mesh.animation_angle = this.inverse ? -angle : angle;
         });
     }
+    
+    clone() {
+        return new PuzzleMove(this.generator, this.inverse, this.override_angle);
+    }
 }
 
 class Puzzle {

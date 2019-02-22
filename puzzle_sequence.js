@@ -32,14 +32,14 @@ class TreeNode {
         } else {
             for(let i = 0; i < this.children.length; i++) {
                 let node = this.children[i];
-                move_sequence.concat(node.generate_sequence(puzzle));
+                move_sequence = move_sequence.concat(node.generate_sequence(puzzle));
             }
             
             if(this.reverse)
                 move_sequence.reverse();
             
             if(this.inverse) {
-                move.sequence.reverse();
+                move_sequence.reverse();
                 for(let i = 0; i < move_sequence.length; i++)
                     move_sequence[i].inverse = !move_sequence[i].inverse;
             }
@@ -48,7 +48,7 @@ class TreeNode {
             if(this.modifier === 'repeat') {
                 new_move_sequence = [];
                 for(let i = 0; i < this.quantifier; i++)
-                    new_move_sequence.concat(move_sequence.splice());
+                    new_move_sequence = new_move_sequence.concat(move_sequence.slice());
                 
             } else if(this.modifier === 'distribute') {
                 new_move_sequence = [];
@@ -174,44 +174,44 @@ class PuzzleSequenceMoveGenerator {
                 while(j < sequence_text.length && (this._is_letter(sequence_text.charAt(j)) || this._is_number(sequence_text.charAt(j)))) {
                     j += 1;
                 }
-                sequence_token_list.push(new Token(sequence_text.slice(0, j), 'identifier'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, j), 'identifier'));
                 i = j;
             } else if(this._is_number(sequence_text.charAt(i))) {
                 j = i;
                 while(j < sequence_text.length && (this._is_number(sequence_text.charAt(j)) || sequence_text.charAt(j) === '.')) {
                     j += 1;
                 }
-                sequence_token_list.push(new Token(sequence_text.slice(0, j), 'number'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, j), 'number'));
                 i = j;
             } else if(sequence_text.charAt(i) === ',' || sequence_text.charAt(i) === ';') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'delimiter'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'delimiter'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '(') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'open round bracket'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'open round bracket'));
                 i += 1;
             } else if(sequence_text.charAt(i) === ')') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'close round bracket'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'close round bracket'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '[') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'open square bracket'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'open square bracket'));
                 i += 1;
             } else if(sequence_text.charAt(i) === ']') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'close square bracket'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'close square bracket'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '{') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'open curly bracket'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'open curly bracket'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '}') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'close curly bracket'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'close curly bracket'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '=') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'assignment'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'assignment'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '\'') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'inverse'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'inverse'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '~') {
-                sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'reverse'));
+                sequence_token_list.push(new Token(sequence_text.slice(i, i + 1), 'reverse'));
                 i += 1;
             }
         }
@@ -263,6 +263,28 @@ class PuzzleSequenceMoveGenerator {
                     continue;
                 }
                 break;
+            }
+            
+            if(sequence_token_list.length > 0) {
+                if(sequence_token_list[0].type === 'open curly bracket') {
+                    if(sequence_token_list[sequence_token_list.length - 1].type !== 'close curly bracket')
+                        throw 'Mismatched curly brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.text);
+                    node.modifier = 'distribute';
+                    sequence_token_list.splice(0, 1);
+                    sequence_token_list.splice(sequence_token_list.length - 1, 1);
+                } else if(sequence_token_list[0].type === 'open square bracket') {
+                    if(sequence_token_list[sequence_token_list.length - 1].type !== 'close square bracket')
+                        throw 'Mismatched square brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.txt);
+                    node.modifier = 'repeat';
+                    sequence_token_list.splice(0, 1);
+                    sequence_token_list.splice(sequence_token_list.length - 1, 1);
+                } else if(sequence_token_list[0].type === 'open round bracket') {
+                    if(sequence_token_list[sequence_token_list.length - 1].type !== 'close round bracket')
+                        throw 'Mismatched round brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.txt);
+                    node.modifier = 'none';
+                    sequence_token_list.splice(0, 1);
+                    sequence_token_list.splice(sequence_token_list.length - 1, 1);
+                }
             }
             
             if(sequence_token_list.length === 1 && sequence_token_list[0].type === 'identifier') {
