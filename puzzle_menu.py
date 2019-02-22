@@ -76,7 +76,7 @@ class Window(QtGui.QOpenGLWindow):
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        gluLookAt(0.0, 0.0, -4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+        gluLookAt(0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
         orient = Vector(-35.0, 45.0, 0.0)
 

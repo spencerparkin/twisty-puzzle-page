@@ -79,7 +79,7 @@ class TreeNode {
             vec3.set(axis, 0.0, 0.0, -1.0);
         else if(this.identifier === 'F')
             vec3.set(axis, 0.0, 0.0, 1.0);
-        else if(this.identifier in this._all_combox('UL'))
+        else if(this.identifier in this._all_combos('UL'))
             vec3.set(axis, -1.0, 1.0, 0.0);
         else if(this.identifier in this._all_combos('UR'))
             vec3.set(axis, 1.0, 1.0, 0.0);
@@ -121,6 +121,8 @@ class TreeNode {
             vec3.set(axis, 1.0, 1.0, 1.0);
         else
             throw 'Unknown identifier: ' + this.identifier;
+        
+        return axis;
     }
     
     _all_combos(text) {
@@ -161,19 +163,20 @@ class PuzzleSequenceMoveGenerator {
     
     _tokenize_sequence_text(sequence_text) {
         let sequence_token_list = [];
+        let i, j;
         
         i = 0;
         while(i < sequence_text.length) {
             if(this._is_letter(sequence_text.charAt(i))) {
                 j = i;
-                while(this._is_letter(sequence_text.charAt(j)) || this._is_number(sequence_text.charAt(j))) {
+                while(j < sequence_text.length && (this._is_letter(sequence_text.charAt(j)) || this._is_number(sequence_text.charAt(j)))) {
                     j += 1;
                 }
                 sequence_token_list.push(new Token(sequence_text.slice(0, j), 'identifier'));
                 i = j;
             } else if(this._is_number(sequence_text.charAt(i))) {
                 j = i;
-                while(this._is_number(sequence_text.charAt(i)) || sequence_text.charAt(i) === '.') {
+                while(j < sequence_text.length && (this._is_number(sequence_text.charAt(j)) || sequence_text.charAt(j) === '.')) {
                     j += 1;
                 }
                 sequence_token_list.push(new Token(sequence_text.slice(0, j), 'number'));
@@ -202,7 +205,7 @@ class PuzzleSequenceMoveGenerator {
             } else if(sequence_text.charAt(i) === '=') {
                 sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'assignment'));
                 i += 1;
-            } else if(sequence_text.charAt(i) === '\'' {
+            } else if(sequence_text.charAt(i) === '\'') {
                 sequence_token_list.push(new Token(sequence_text.slice(0, 1), 'inverse'));
                 i += 1;
             } else if(sequence_text.charAt(i) === '~') {
@@ -224,8 +227,8 @@ class PuzzleSequenceMoveGenerator {
         while(i < sequence_token_list.length) {
             j = i;
             while(j < sequence_token_list.length && sequence_token_list[j].type !== 'delimiter') {
-                if(sequence_token_list.type.indexOf('open') === 0)
-                    j = this._find_matching_bracket(sequence_token_list, i);
+                if(sequence_token_list[j].type.indexOf('open') === 0)
+                    j = this._find_matching_bracket(sequence_token_list, j);
                 else
                     j += 1;
             }
@@ -257,6 +260,7 @@ class PuzzleSequenceMoveGenerator {
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
                     continue;
                 }
+                break;
             }
             
             if(sequence_token_list.length === 1 && sequence_token_list[0].type === 'identifier') {

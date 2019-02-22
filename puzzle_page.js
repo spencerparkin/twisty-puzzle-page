@@ -125,13 +125,13 @@ class PuzzleMove {
         let angle = this.override_angle ? this.override_angle : this.generator.angle;
         
         let permutation_transform = mat4.create();
-        mat4.fromRotation(permutation_transform, this.inverse ? -angle : angle, this.generator.axis);
+        mat4.fromRotation(permutation_transform, this.inverse ? angle : -angle, this.generator.axis);
 
         // The puzzle must not be animating at this moment for this to work.
         puzzle.for_captured_meshes(this.generator, mesh => {
             mat4.multiply(mesh.permutation_transform, permutation_transform, mesh.permutation_transform);
             vec3.copy(mesh.animation_axis, this.generator.axis);
-            mesh.animation_angle = this.inverse ? angle : -angle;
+            mesh.animation_angle = this.inverse ? -angle : angle;
         });
     }
 }
@@ -222,7 +222,7 @@ class Puzzle {
             return (Math.abs(dot_a - 1.0) < Math.abs(dot_b - 1.0)) ? gen_a : gen_b;
         });
         
-        return new Move(generator, false);
+        return new PuzzleMove(generator, false);
     }
 
     pick_generator(projected_mouse_point) {
@@ -352,9 +352,9 @@ function canvas_mouse_wheel_move(event) {
         } else {
             let move = undefined;
     
-            if(event.deltaY > 0) {
+            if(event.deltaY < 0) {
                 move = new PuzzleMove(generator, false);
-            } else if(event.deltaY < 0) {
+            } else if(event.deltaY > 0) {
                 move = new PuzzleMove(generator, true);
             }
     
@@ -422,7 +422,7 @@ function canvas_mouse_move(event) {
     if(dragging) {
         let scale = Math.PI / 100.0;
 
-        let x_angle_delta = -scale * event.movementY;
+        let x_angle_delta = scale * event.movementY;
         let y_angle_delta = scale * event.movementX;
 
         let x_axis = vec3.create();
@@ -476,7 +476,7 @@ function calc_transform_matrix(canvas) {
     mat4.perspective(proj_matrix, 60.0 * Math.PI / 180.0, aspect_ratio, 1.0, null);
 
     let eye = vec3.create();
-    vec3.set(eye, 0.0, 0.0, -5.0);
+    vec3.set(eye, 0.0, 0.0, 5.0);
 
     let center = vec3.create();
     vec3.set(center, 0.0, 0.0, 0.0);
@@ -639,7 +639,7 @@ function sequence_input_key_down(event) {
         let sequence_input = document.getElementById('puzzle_prompt_input');
         let sequence_text = sequence_input.value;
         let move_sequence = puzzle_sequence_generator.generate_move_sequence(sequence_text, puzzle);
-        puzzle.move_queue.concat(move_sequence);
+        puzzle.move_queue = puzzle.move_queue.concat(move_sequence);
     }
 }
 
@@ -688,7 +688,7 @@ function document_ready() {
                 setInterval(interval_callback, 10);
                 
                 let sequence_input = document.getElementById('puzzle_prompt_input');
-                sequence_input.addEventListener('onkeydown', sequence_input_key_down);
+                sequence_input.addEventListener('keydown', sequence_input_key_down);
             });
         });
         
