@@ -78,7 +78,7 @@ class Window(QtGui.QOpenGLWindow):
         glLoadIdentity()
         gluLookAt(0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-        orient = Vector(-35.0, 45.0, 0.0)
+        orient = Vector(35.0, -45.0, 0.0)
 
         glPushMatrix()
         glRotatef(orient.x, 1.0, 0.0, 0.0)
