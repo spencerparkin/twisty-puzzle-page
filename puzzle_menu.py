@@ -55,7 +55,7 @@ class Window(QtGui.QOpenGLWindow):
                     
                     image = self.grabFramebuffer()
                     name, ext = os.path.splitext(file)
-                    image_file = os.getcwd() + '/menu/' + name + '.jpg'
+                    image_file = os.getcwd() + '/menu/' + name + '.png'
                     image.save(image_file)
         
         app.quit()

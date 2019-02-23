@@ -519,7 +519,7 @@ function promise_puzzle_menu() {
                 for(let i = 0; i < puzzle_menu.length; i++) {
                     let menu_item = puzzle_menu[i];
                     let menu_item_icon = document.createElement('img');
-                    menu_item_icon.src = 'menu/' + menu_item + '.jpg';
+                    menu_item_icon.src = 'menu/' + menu_item + '.png';
                     menu_item_icon.classList.add('puzzle_icon');
                     menu_item_icon.addEventListener('click', () => {
                         menu_item_clicked(menu_item);

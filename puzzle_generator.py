@@ -53,6 +53,9 @@ class GeneratorMesh(TriangleMesh):
         self.angle = angle if angle is not None else 0.0
         self.pick_point = Vector(0.0, 0.0, 0.0) if pick_point is None else pick_point
 
+    def clone(self):
+        return GeneratorMesh(mesh=super().clone(), axis=self.axis.clone(), angle=self.angle, pick_point=self.pick_point.clone())
+
     def to_dict(self):
         data = super().to_dict()
         data['axis'] = self.axis.to_dict()
@@ -240,16 +243,13 @@ class PuzzleDefinitionBase(object):
         return face_mesh_list, plane_list
 
 def main():
-    from puzzle_definitions import RubiksCube
-    from puzzle_definitions import FusedCube
-    from puzzle_definitions import CurvyCopter
-    from puzzle_definitions import CurvyCopterPlus
-    from puzzle_definitions import HelicopterCube
-    from puzzle_definitions import FlowerCopter
+    from puzzle_definitions import RubiksCube, FisherCube, FusedCube, CurvyCopter
+    from puzzle_definitions import CurvyCopterPlus, HelicopterCube, FlowerCopter
     from puzzle_definitions import Megaminx
 
     puzzle_class_list = [
         RubiksCube,
+        FisherCube,
         FusedCube,
         CurvyCopter,
         CurvyCopterPlus,

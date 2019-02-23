@@ -5,7 +5,7 @@ import math
 from puzzle_generator import PuzzleDefinitionBase
 from math3d_triangle_mesh import TriangleMesh, Polyhedron
 from math3d_vector import Vector
-from math3d_transform import AffineTransform
+from math3d_transform import AffineTransform, LinearTransform
 from math3d_sphere import Sphere
 from puzzle_generator import GeneratorMesh
 
@@ -30,6 +30,19 @@ class RubiksCube(PuzzleDefinitionBase):
         f_cut_disk = GeneratorMesh(mesh=f_cut_disk, axis=Vector(0.0, 0.0, 1.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 0.0, 1.0))
         
         return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
+
+class FisherCube(RubiksCube):
+    def __init__(self):
+        super().__init__()
+
+    def make_generator_mesh_list(self):
+        mesh_list = super().make_generator_mesh_list()
+        transform = LinearTransform().make_rotation(Vector(0.0, 1.0, 0.), math.pi / 4.0)
+        mesh_list = transform(mesh_list)
+        for mesh in mesh_list:
+            mesh.axis = transform(mesh.axis)
+            mesh.pick_point = transform(mesh.pick_point)
+        return mesh_list
 
 class FusedCube(RubiksCube):
     def __init__(self):

@@ -126,7 +126,7 @@ class PreviewWindow(QtGui.QOpenGLWindow):
             delta = pos - self.drag_pos
             self.drag_pos = pos
             sensativity_factor = 2.0
-            self.orient.x -= sensativity_factor * float(delta.y())
+            self.orient.x += sensativity_factor * float(delta.y())
             self.orient.y += sensativity_factor * float(delta.x())
             self.update()
 
