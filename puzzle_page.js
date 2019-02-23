@@ -411,13 +411,13 @@ function curvy_copter_special_move(event, generator) {
     let generator_a = puzzle.generator_list[special_move.generator_mesh_a];
     let generator_b = puzzle.generator_list[special_move.generator_mesh_b];
     
-    puzzle.move_queue.push(new PuzzleMove(generator_a, false, -angle * scale));
-    puzzle.move_queue.push(new PuzzleMove(generator_b, false, -angle * scale));
-    
-    puzzle.move_queue.push(new PuzzleMove(generator, (event.deltaY < 0) ? true : false));
-    
     puzzle.move_queue.push(new PuzzleMove(generator_a, false, angle * scale));
     puzzle.move_queue.push(new PuzzleMove(generator_b, false, angle * scale));
+    
+    puzzle.move_queue.push(new PuzzleMove(generator, (event.deltaY > 0) ? true : false));
+    
+    puzzle.move_queue.push(new PuzzleMove(generator_a, false, -angle * scale));
+    puzzle.move_queue.push(new PuzzleMove(generator_b, false, -angle * scale));
 }
 
 var dragging = false;
