@@ -337,7 +337,7 @@ class Puzzle {
     }
 }
 
-function interval_callback() {
+function puzzle_animate_callback() {
     if(puzzle.advance_animation()) {
 
         frames_per_second = 60.0;   // TODO: Accurately compute this.
@@ -424,7 +424,7 @@ var dragging = false;
 
 function canvas_mouse_move(event) {
     if(dragging) {
-        let scale = Math.PI / 100.0;
+        let scale = Math.PI / 200.0;
 
         let x_angle_delta = scale * event.movementY;
         let y_angle_delta = scale * event.movementX;
@@ -537,7 +537,7 @@ function promise_puzzle_menu() {
                 puzzle_menu_div.addEventListener('mouseout', menu_mouse_out);
                 setInterval(menu_animate, 10);
                 menu_update();
-                resolve(puzzle_menu[0]);
+                resolve('RubiksCube');
             },
             failure: error => {
                 alert(error);
@@ -689,7 +689,7 @@ function document_ready() {
     
                 render_scene();
     
-                setInterval(interval_callback, 10);
+                setInterval(puzzle_animate_callback, 10);
                 
                 let sequence_input = document.getElementById('puzzle_prompt_input');
                 sequence_input.addEventListener('keydown', sequence_input_key_down);
