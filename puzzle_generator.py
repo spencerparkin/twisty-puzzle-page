@@ -120,6 +120,9 @@ class PuzzleDefinitionBase(object):
     def make_generator_mesh_list(self):
         raise Exception('Please override this method.')
     
+    def min_mesh_area(self):
+        return 0.001
+    
     def generate_final_mesh_list(self):
         mesh_list = self.make_initial_mesh_list()
         generator_mesh_list = self.make_generator_mesh_list()
@@ -141,12 +144,11 @@ class PuzzleDefinitionBase(object):
                 mesh_list = new_mesh_list
     
             # Cull meshes with area below a certain threshold to eliminate some artifacting.
-            min_area = 0.001
             i = 0
             while i < len(mesh_list):
                 mesh = mesh_list[i]
                 area = mesh.area()
-                if area < min_area:
+                if area < self.min_mesh_area():
                     del mesh_list[i]
                 else:
                     i += 1
@@ -245,7 +247,7 @@ class PuzzleDefinitionBase(object):
 def main():
     from puzzle_definitions import RubiksCube, FisherCube, FusedCube, CurvyCopter
     from puzzle_definitions import CurvyCopterPlus, HelicopterCube, FlowerCopter
-    from puzzle_definitions import Megaminx
+    from puzzle_definitions import Megaminx, DinoCube, FlowerRexCube, Skewb
 
     puzzle_class_list = [
         RubiksCube,
@@ -255,7 +257,10 @@ def main():
         CurvyCopterPlus,
         HelicopterCube,
         FlowerCopter,
-        Megaminx
+        Megaminx,
+        DinoCube,
+        FlowerRexCube,
+        Skewb
     ]
 
     arg_parser = argparse.ArgumentParser()

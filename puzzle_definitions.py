@@ -223,13 +223,51 @@ class Megaminx(PuzzleDefinitionBase):
             mesh_list.append(mesh)
         return mesh_list
 
+class DinoCube(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_generator_mesh_list(self):
+        length = ((Vector(1.0, -1.0, 1.0) + Vector(1.0, 1.0, -1.0) + Vector(-1.0, 1.0, 1.0)) / 3.0).length()
+        mesh_list = []
+        for vector in Vector(1.0, 1.0, 1.0).sign_permute():
+            mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(vector.resized(length), -vector.normalized(), 4.0, 4), axis=vector.normalized(), angle=2.0 * math.pi / 3.0, pick_point=vector)
+            mesh_list.append(mesh)
+        return mesh_list
+
+class FlowerRexCube(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+    
+    def make_generator_mesh_list(self):
+        mesh_list = []
+        length = 3.0
+        radius = (Vector(1.0, 1.0, 1.0).resized(length) - Vector(-1.0, 1.0, 1.0)).length()
+        for vector in Vector(1.0, 1.0, 1.0).sign_permute():
+            mesh = GeneratorMesh(mesh=Sphere(vector.resized(length), radius).make_mesh(subdivision_level=2), axis=vector.normalized(), angle=2.0 * math.pi / 3.0, pick_point=vector)
+            mesh_list.append(mesh)
+        return mesh_list
+    
+    def min_mesh_area(self):
+        return 0.05
+
+class Skewb(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+    
+    def make_generator_mesh_list(self):
+        mesh_list = []
+        for vector in Vector(1.0, 1.0, 1.0).sign_permute():
+            mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), -vector.normalized(), 4.0, 4), axis=vector.normalized(), angle=2.0 * math.pi / 3.0, pick_point=vector)
+            mesh_list.append(mesh)
+        return mesh_list
+
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: Add Fisher Cube.
 # TODO: Add skewb.
 # TODO: Add mixup cube.
 # TODO: Add pyraminx.
-# TODO: Add the LanLanRex cube.
 # TODO: Puzzles like the Bagua and Square-1 are not only difficult to cut, but they require adherance
 #       to certain physical constraints (i.e., bandaging.)  The cutting problem is not too hard, but
 #       is there a clean solution to the bandaging problem?  The unicorn cube is another good example.
