@@ -262,6 +262,53 @@ class Skewb(PuzzleDefinitionBase):
             mesh_list.append(mesh)
         return mesh_list
 
+class SquareOne(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+    
+    def bandages(self):
+        return True
+    
+    def make_generator_mesh_list(self):
+        mesh_list = []
+        
+        angle = math.pi + math.pi / 12.0
+        normal = Vector(math.cos(angle), 0.0, math.sin(angle))
+        mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), normal, 4.0, 4), axis=-normal, angle=math.pi, pick_point=normal.resized(-2.0))
+        mesh_list.append(mesh)
+        
+        mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(Vector(0.0, 0.2, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4), axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 6.0, pick_point=Vector(0.0, 1.0, 0.0))
+        mesh_list.append(mesh)
+        
+        mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(Vector(0.0, -0.2, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4), axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 6.0, pick_point=Vector(0.0, -1.0, 0.0))
+        mesh_list.append(mesh)
+        
+        return mesh_list
+
+    def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
+        u_cut_disk = generator_mesh_list[1]
+        d_cut_disk = generator_mesh_list[2]
+        
+        if cut_pass == 0:
+            self.apply_generator(mesh_list, u_cut_disk)
+            self.apply_generator(mesh_list, d_cut_disk, inverse=True)
+            return True
+        elif cut_pass == 1:
+            self.apply_generator(mesh_list, u_cut_disk)
+            self.apply_generator(mesh_list, d_cut_disk, inverse=True)
+            self.apply_generator(mesh_list, u_cut_disk)
+            self.apply_generator(mesh_list, d_cut_disk, inverse=True)
+            return True
+        elif cut_pass == 2:
+            self.apply_generator(mesh_list, u_cut_disk)
+            self.apply_generator(mesh_list, d_cut_disk, inverse=True)
+            return True
+
+        for i in range(8):
+            self.apply_generator(mesh_list, u_cut_disk)
+            self.apply_generator(mesh_list, d_cut_disk, inverse=True)
+        return False
+
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: Add Fisher Cube.

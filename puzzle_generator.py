@@ -81,13 +81,16 @@ class GeneratorMesh(TriangleMesh):
         center = mesh.calc_center()
         return True if self.side(center) == Side.BACK else False
 
-    def transform_mesh(self, mesh):
-        transform = LinearTransform().make_rotation(self.axis, self.angle)
+    def transform_mesh(self, mesh, inverse=False):
+        transform = LinearTransform().make_rotation(self.axis, -self.angle if not inverse else self.angle)
         return transform(mesh)
 
 class PuzzleDefinitionBase(object):
     def __init__(self):
         pass
+    
+    def bandages(self):
+        return False
     
     def make_initial_mesh_list(self):
         # Most, but not all puzzles are based on the cube with the following standard colors.
@@ -168,10 +171,10 @@ class PuzzleDefinitionBase(object):
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
         return False
     
-    def apply_generator(self, mesh_list, generator_mesh):
+    def apply_generator(self, mesh_list, generator_mesh, inverse=False):
         for i, mesh in enumerate(mesh_list):
             if generator_mesh.captures_mesh(mesh):
-                mesh_list[i] = generator_mesh.transform_mesh(mesh)
+                mesh_list[i] = generator_mesh.transform_mesh(mesh, inverse)
     
     def generate_puzzle_file(self):
         final_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
@@ -180,7 +183,8 @@ class PuzzleDefinitionBase(object):
             # One possible problem here is that if a mesh (essentially a sticker) is not "convex enough" the center
             # won't be a point on the interior of the mesh, which is what we need here.  So far it's not been a problem.
             'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
-            'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list]
+            'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list],
+            'bandages': self.bandages()
         }
 
         self.annotate_puzzle_data(puzzle_data)
@@ -248,6 +252,7 @@ def main():
     from puzzle_definitions import RubiksCube, FisherCube, FusedCube, CurvyCopter
     from puzzle_definitions import CurvyCopterPlus, HelicopterCube, FlowerCopter
     from puzzle_definitions import Megaminx, DinoCube, FlowerRexCube, Skewb
+    from puzzle_definitions import SquareOne
 
     puzzle_class_list = [
         RubiksCube,
@@ -260,7 +265,8 @@ def main():
         Megaminx,
         DinoCube,
         FlowerRexCube,
-        Skewb
+        Skewb,
+        SquareOne
     ]
 
     arg_parser = argparse.ArgumentParser()

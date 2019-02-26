@@ -70,17 +70,25 @@ class PuzzleMesh extends StaticTriangleMesh {
     }
 
     is_captured_by_generator(generator) {
-        let vec = vec3.create();
         let transformed_center = vec3.create();
-        for(let i = 0; i < generator.plane_list.length; i++) {
-            let plane = generator.plane_list[i];
-            vec3.transformMat4(transformed_center, this.center, this.permutation_transform);
-            vec3.subtract(vec, transformed_center, plane.center);
-            let distance = vec3.dot(vec, plane.unit_normal);
-            if(distance >= 0.0)
-                return false;
+        vec3.transformMat4(transformed_center, this.center, this.permutation_transform);
+        return generator.contains_point(transformed_center);
+    }
+    
+    straddled_by_generator(generator) {
+        let found_inside = false;
+        let found_outside = false;
+        for(let i = 0; i < this.vertex_list.length; i++) {
+            let vertex = vec3_create(this.vertex_list[i]);
+            vec3.transformMat4(vertex, vertex, this.permutation_transform);
+            if(generator.contains_point(vertex))
+                found_inside = true;
+            else
+                found_outside = true;
+            if(found_inside && found_outside)
+                return true;
         }
-        return true;
+        return false;
     }
 
     is_solved() {
@@ -112,6 +120,18 @@ class PuzzleGenerator {
 
     release() {
     }
+    
+    contains_point(point) {
+        let vec = vec3.create();
+        for(let i = 0; i < this.plane_list.length; i++) {
+            let plane = this.plane_list[i];
+            vec3.subtract(vec, point, plane.center);
+            let distance = vec3.dot(vec, plane.unit_normal);
+            if(distance >= 0.0)
+                return false;
+        }
+        return true;
+    }
 }
 
 class PuzzleMove {
@@ -122,6 +142,11 @@ class PuzzleMove {
     }
 
     apply() {
+        if(puzzle.bandages) {
+            if(puzzle.generator_constrained(this.generator))
+                return;
+        }
+        
         let angle = this.override_angle ? this.override_angle : this.generator.angle;
         
         let permutation_transform = mat4.create();
@@ -148,6 +173,7 @@ class Puzzle {
         this.orient_matrix = mat4.create();
         this.selected_generator = -1;
         this.move_queue = [];
+        this.bandages = false;
     }
     
     release() {
@@ -177,6 +203,7 @@ class Puzzle {
                         reject();
                     } else {
                         this.release();
+                        this.bandages = puzzle_data.bandages || false;
                         let mesh_list = puzzle_data['mesh_list'];
                         for(let i = 0; i < mesh_list.length; i++) {
                             let mesh_data = mesh_list[i];
@@ -286,6 +313,15 @@ class Puzzle {
         if(this.selected_generator >= 0)
             return this.generator_list[this.selected_generator];
         return undefined;
+    }
+
+    generator_constrained(generator) {
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.straddled_by_generator(generator))
+                return true;
+        }
+        return false;
     }
 
     is_solved() {
