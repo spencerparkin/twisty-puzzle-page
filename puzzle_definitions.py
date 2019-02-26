@@ -61,7 +61,7 @@ class FusedCube(RubiksCube):
         f_cut_disk = generator_mesh_list[2]
         
         if cut_pass < 3:
-            self.apply_generator(mesh_list, r_cut_disk)  
+            self.apply_generator(mesh_list, r_cut_disk)
         elif cut_pass == 3:
             self.apply_generator(mesh_list, r_cut_disk)
             self.apply_generator(mesh_list, u_cut_disk)
@@ -309,15 +309,62 @@ class SquareOne(PuzzleDefinitionBase):
             self.apply_generator(mesh_list, d_cut_disk, inverse=True)
         return False
 
+class Bagua(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+    
+    def bandages(self):
+        return True
+    
+    def make_generator_mesh_list(self):
+
+        l_cut_disk = TriangleMesh.make_disk(Vector(-1.0 / 2.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4)
+        r_cut_disk = TriangleMesh.make_disk(Vector(1.0 / 2.0, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4)
+        d_cut_disk = TriangleMesh.make_disk(Vector(0.0, -1.0 / 2.0, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4)
+        u_cut_disk = TriangleMesh.make_disk(Vector(0.0, 1.0 / 2.0, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4)
+        b_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, -1.0 / 2.0), Vector(0.0, 0.0, 1.0), 4.0, 4)
+        f_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 1.0 / 2.0), Vector(0.0, 0.0, -1.0), 4.0, 4)
+
+        l_cut_disk = GeneratorMesh(mesh=l_cut_disk, axis=Vector(-1.0, 0.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(-1.0, 0.0, 0.0))
+        r_cut_disk = GeneratorMesh(mesh=r_cut_disk, axis=Vector(1.0, 0.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(1.0, 0.0, 0.0))
+        d_cut_disk = GeneratorMesh(mesh=d_cut_disk, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(0.0, -1.0, 0.0))
+        u_cut_disk = GeneratorMesh(mesh=u_cut_disk, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 1.0, 0.0))
+        b_cut_disk = GeneratorMesh(mesh=b_cut_disk, axis=Vector(0.0, 0.0, -1.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 0.0, -1.0))
+        f_cut_disk = GeneratorMesh(mesh=f_cut_disk, axis=Vector(0.0, 0.0, 1.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 0.0, 1.0))
+
+        return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
+
+    def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
+
+        l_cut_disk = generator_mesh_list[0]
+        r_cut_disk = generator_mesh_list[1]
+        d_cut_disk = generator_mesh_list[2]
+        u_cut_disk = generator_mesh_list[3]
+        b_cut_disk = generator_mesh_list[4]
+        f_cut_disk = generator_mesh_list[5]
+        
+        if cut_pass == 0:
+            self.apply_generator(mesh_list, l_cut_disk)
+            self.apply_generator(mesh_list, r_cut_disk, inverse=True)
+            return True
+        elif cut_pass == 1:
+            self.apply_generator(mesh_list, l_cut_disk, inverse=True)
+            self.apply_generator(mesh_list, r_cut_disk)
+            self.apply_generator(mesh_list, u_cut_disk)
+            self.apply_generator(mesh_list, d_cut_disk, inverse=True)
+            return True
+        elif cut_pass == 2:
+            self.apply_generator(mesh_list, u_cut_disk, inverse=True)
+            self.apply_generator(mesh_list, d_cut_disk)
+            self.apply_generator(mesh_list, b_cut_disk)
+            self.apply_generator(mesh_list, f_cut_disk, inverse=True)
+            return True
+
+        self.apply_generator(mesh_list, b_cut_disk, inverse=True)
+        self.apply_generator(mesh_list, f_cut_disk)
+        return False
+
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
-# TODO: Add Fisher Cube.
-# TODO: Add skewb.
 # TODO: Add mixup cube.
 # TODO: Add pyraminx.
-# TODO: Puzzles like the Bagua and Square-1 are not only difficult to cut, but they require adherance
-#       to certain physical constraints (i.e., bandaging.)  The cutting problem is not too hard, but
-#       is there a clean solution to the bandaging problem?  The unicorn cube is another good example.
-#       The Son-Mum cube looks interesting.  The WitEden Worm Hole II would be very hard to make.
-#       One way to solve bandaging is to check that no polygon straddles a generator's mesh before
-#       that generator gets applied.

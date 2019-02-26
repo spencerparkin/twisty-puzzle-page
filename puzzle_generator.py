@@ -252,7 +252,7 @@ def main():
     from puzzle_definitions import RubiksCube, FisherCube, FusedCube, CurvyCopter
     from puzzle_definitions import CurvyCopterPlus, HelicopterCube, FlowerCopter
     from puzzle_definitions import Megaminx, DinoCube, FlowerRexCube, Skewb
-    from puzzle_definitions import SquareOne
+    from puzzle_definitions import SquareOne, Bagua
 
     puzzle_class_list = [
         RubiksCube,
@@ -266,7 +266,8 @@ def main():
         DinoCube,
         FlowerRexCube,
         Skewb,
-        SquareOne
+        SquareOne,
+        Bagua
     ]
 
     arg_parser = argparse.ArgumentParser()

@@ -358,6 +358,8 @@ class Puzzle {
     }
     
     scramble() {
+        // TODO: Note that some puzzles are not trivial to scramble.  You sometimes have to stick
+        //       to scrambling a sub-group of the puzzle before you make random moves in the entire group.
         // TODO: This doesn't perform the CurvyCopter's special move.
         let k = -1;
         for(let i = 0; i < 100; i++) {
