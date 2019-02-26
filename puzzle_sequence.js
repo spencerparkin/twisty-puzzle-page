@@ -167,6 +167,9 @@ class PuzzleSequenceMoveGenerator {
         let sequence_token_list = [];
         let i, j;
         
+        let sequence_list = sequence_text.split(/\s+/);
+        sequence_text = sequence_list.reduce((text, value) => text + value);
+        
         i = 0;
         while(i < sequence_text.length) {
             if(this._is_letter(sequence_text.charAt(i))) {
