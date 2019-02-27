@@ -364,7 +364,72 @@ class Bagua(PuzzleDefinitionBase):
         self.apply_generator(mesh_list, f_cut_disk)
         return False
 
+class PentacleCube(RubiksCube):
+    def __init__(self):
+        super().__init__()
+    
+    def bandages(self):
+        return True
+    
+    def make_generator_mesh_list(self):
+        mesh_list = super().make_generator_mesh_list()
+        
+        vector_list = [
+            Vector(-1.0, 0.0, 0.0),
+            Vector(1.0, 0.0, 0.0),
+            Vector(0.0, -1.0, 0.0),
+            Vector(0.0, 1.0, 0.0),
+            Vector(0.0, 0.0, -1.0),
+            Vector(0.0, 0.0, 1.0)
+        ]
+        
+        for vector in vector_list:
+            mesh = GeneratorMesh(mesh=Sphere(vector, 1.0).make_mesh(subdivision_level=2), axis=vector, angle=math.pi / 10.0, pick_point=vector.resized(1.5))
+            mesh_list.append(mesh)
+        
+        return mesh_list
+
+    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+        if cut_pass == 0 and i >= 6:
+            return True
+        if 0 < cut_pass <= 5 and i == 0:
+            return True
+        if 5 < cut_pass <= 10 and i == 2:
+            return True
+        return False
+
+    def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
+        l_cut_circle = generator_mesh_list[6]
+        r_cut_circle = generator_mesh_list[7]
+        d_cut_circle = generator_mesh_list[8]
+        u_cut_circle = generator_mesh_list[9]
+        b_cut_circle = generator_mesh_list[10]
+        f_cut_circle = generator_mesh_list[11]
+        
+        if 0 <= cut_pass < 5:
+            for i in range(4):
+                self.apply_generator(mesh_list, f_cut_circle)
+                self.apply_generator(mesh_list, b_cut_circle, inverse=True)
+                self.apply_generator(mesh_list, u_cut_circle)
+                self.apply_generator(mesh_list, d_cut_circle, inverse=True)
+            return True
+        elif 5 <= cut_pass < 10:
+            if cut_pass == 5:
+                self.apply_generator(mesh_list, f_cut_circle, inverse=True)
+                self.apply_generator(mesh_list, b_cut_circle)
+            for i in range(4):
+                self.apply_generator(mesh_list, l_cut_circle)
+                self.apply_generator(mesh_list, r_cut_circle, inverse=True)
+            return True
+    
+        return False
+
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: Add mixup cube.
 # TODO: Add pyraminx.
+# TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
+# TODO: Add Eitan's Star.
+# TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.
+# TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
+# TODO: Add Gem series?

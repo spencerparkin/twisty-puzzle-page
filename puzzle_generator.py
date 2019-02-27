@@ -40,11 +40,25 @@ class ColoredMesh(TriangleMesh):
         super().render()
 
     def scale(self, scale_factor):
-        center = self.calc_center()
+        # Hmmm...this wont' quite work for concave shapes.
+        center = super().calc_center()
         for i, vertex in enumerate(self.vertex_list):
             vector = vertex - center
             vector = vector * scale_factor
             self.vertex_list[i] = center + vector
+
+    def calc_center(self):
+        # For our purposes, this doesn't have to be an interior point that best represents
+        # the center of the mesh (although I wish I had a good idea of how to calculate that.)
+        # It just needs to be any interior point, but one furthest from the edge, if possible.
+        largest_area = 0.0
+        best_triangle = None
+        for triangle in self.yield_triangles():
+            area = triangle.area()
+            if area > largest_area:
+                largest_area = area
+                best_triangle = triangle
+        return best_triangle.calc_center()
 
 class GeneratorMesh(TriangleMesh):
     def __init__(self, mesh=None, axis=None, angle=None, pick_point=None):
@@ -126,6 +140,9 @@ class PuzzleDefinitionBase(object):
     def min_mesh_area(self):
         return 0.001
     
+    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+        return True
+    
     def generate_final_mesh_list(self):
         mesh_list = self.make_initial_mesh_list()
         generator_mesh_list = self.make_generator_mesh_list()
@@ -136,15 +153,16 @@ class PuzzleDefinitionBase(object):
             
             # Cut all the meshes against all the generator meshes.
             for i, cut_mesh in enumerate(generator_mesh_list):
-                print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
-                new_mesh_list = []
-                for mesh in mesh_list:
-                    back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
-                    if len(back_mesh.triangle_list) > 0:
-                        new_mesh_list.append(ColoredMesh(mesh=back_mesh, color=mesh.color))
-                    if len(front_mesh.triangle_list) > 0:
-                        new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
-                mesh_list = new_mesh_list
+                if self.can_apply_cutmesh_for_pass(i, cut_pass):
+                    print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
+                    new_mesh_list = []
+                    for mesh in mesh_list:
+                        back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
+                        if len(back_mesh.triangle_list) > 0:
+                            new_mesh_list.append(ColoredMesh(mesh=back_mesh, color=mesh.color))
+                        if len(front_mesh.triangle_list) > 0:
+                            new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
+                    mesh_list = new_mesh_list
     
             # Cull meshes with area below a certain threshold to eliminate some artifacting.
             i = 0
@@ -180,8 +198,6 @@ class PuzzleDefinitionBase(object):
         final_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
         
         puzzle_data = {
-            # One possible problem here is that if a mesh (essentially a sticker) is not "convex enough" the center
-            # won't be a point on the interior of the mesh, which is what we need here.  So far it's not been a problem.
             'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
             'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list],
             'bandages': self.bandages()
@@ -252,22 +268,13 @@ def main():
     from puzzle_definitions import RubiksCube, FisherCube, FusedCube, CurvyCopter
     from puzzle_definitions import CurvyCopterPlus, HelicopterCube, FlowerCopter
     from puzzle_definitions import Megaminx, DinoCube, FlowerRexCube, Skewb
-    from puzzle_definitions import SquareOne, Bagua
+    from puzzle_definitions import SquareOne, Bagua, PentacleCube
 
     puzzle_class_list = [
-        RubiksCube,
-        FisherCube,
-        FusedCube,
-        CurvyCopter,
-        CurvyCopterPlus,
-        HelicopterCube,
-        FlowerCopter,
-        Megaminx,
-        DinoCube,
-        FlowerRexCube,
-        Skewb,
-        SquareOne,
-        Bagua
+        RubiksCube, FisherCube, FusedCube, CurvyCopter,
+        CurvyCopterPlus, HelicopterCube, FlowerCopter,
+        Megaminx, DinoCube, FlowerRexCube, Skewb,
+        SquareOne, Bagua, PentacleCube
     ]
 
     arg_parser = argparse.ArgumentParser()
