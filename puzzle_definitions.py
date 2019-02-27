@@ -392,10 +392,24 @@ class PentacleCube(RubiksCube):
     def can_apply_cutmesh_for_pass(self, i, cut_pass):
         if cut_pass == 0 and i >= 6:
             return True
-        if 0 < cut_pass <= 5 and i == 0:
+        
+        if cut_pass == 1 and i == 0: # left
             return True
-        if 5 < cut_pass <= 10 and i == 2:
+        if cut_pass == 2 and i == 3: # up
             return True
+        if cut_pass == 3 and i == 1: # right
+            return True
+        if cut_pass == 4 and i == 2: # down
+            return True
+        if cut_pass == 5 and i == 0: # left
+            return True
+        if cut_pass == 6 and i == 5: # forward
+            return True
+        if cut_pass == 7 and i == 4: # back
+            return True
+        if cut_pass == 8 and i == 5: # forward
+            return True
+        
         return False
 
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
@@ -406,23 +420,43 @@ class PentacleCube(RubiksCube):
         b_cut_circle = generator_mesh_list[10]
         f_cut_circle = generator_mesh_list[11]
         
-        if 0 <= cut_pass < 5:
-            for i in range(4):
-                self.apply_generator(mesh_list, f_cut_circle)
-                self.apply_generator(mesh_list, b_cut_circle, inverse=True)
-                self.apply_generator(mesh_list, u_cut_circle)
-                self.apply_generator(mesh_list, d_cut_circle, inverse=True)
-            return True
-        elif 5 <= cut_pass < 10:
-            if cut_pass == 5:
-                self.apply_generator(mesh_list, f_cut_circle, inverse=True)
-                self.apply_generator(mesh_list, b_cut_circle)
-            for i in range(4):
+        if cut_pass == 0:
+            pass
+        
+        if cut_pass == 1 or cut_pass == 2 or cut_pass == 3 or cut_pass == 4:
+            self.apply_generator(mesh_list, f_cut_circle)
+            self.apply_generator(mesh_list, b_cut_circle, inverse=True)
+            self.apply_generator(mesh_list, u_cut_circle, inverse=True)
+            self.apply_generator(mesh_list, d_cut_circle)
+            self.apply_generator(mesh_list, l_cut_circle)
+            self.apply_generator(mesh_list, r_cut_circle, inverse=True)
+        
+        if cut_pass == 5:
+            for i in range(6):
                 self.apply_generator(mesh_list, l_cut_circle)
                 self.apply_generator(mesh_list, r_cut_circle, inverse=True)
-            return True
-    
-        return False
+            for i in range(3):
+                self.apply_generator(mesh_list, u_cut_circle)
+                self.apply_generator(mesh_list, d_cut_circle, inverse=True)
+                
+        if cut_pass == 6 or cut_pass == 7:
+            for i in range(2):
+                self.apply_generator(mesh_list, l_cut_circle)
+                self.apply_generator(mesh_list, r_cut_circle, inverse=True)
+            for i in range(2):
+                self.apply_generator(mesh_list, u_cut_circle, inverse=True)
+                self.apply_generator(mesh_list, d_cut_circle)
+                
+        return True if cut_pass < 8 else False
+
+    def can_shrink_mesh(self, mesh):
+        for point in Vector(1.0, 1.0, 1.0).sign_permute():
+            if any([(vertex - point).length() < 1e-4 for vertex in mesh.vertex_list]):
+                return False
+        return True
+
+    def shrink_scale(self):
+        return 0.90
 
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.

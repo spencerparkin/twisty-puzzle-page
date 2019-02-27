@@ -182,9 +182,16 @@ class PuzzleDefinitionBase(object):
             cut_pass += 1
 
         for mesh in mesh_list:
-            mesh.scale(0.95)
+            if self.can_shrink_mesh(mesh):
+                mesh.scale(self.shrink_scale())
 
         return mesh_list, generator_mesh_list
+    
+    def shink_scale(self):
+        return 0.95
+    
+    def can_shrink_mesh(self, mesh):
+        return True
     
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
         return False
