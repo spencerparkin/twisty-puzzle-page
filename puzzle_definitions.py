@@ -457,7 +457,11 @@ class PentacleCube(RubiksCube):
 
     def shrink_scale(self):
         return 0.90
+    
+    def min_mesh_area(self):
+        return 0.05
 
+# TODO: Add dogic.
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: Add mixup cube.
