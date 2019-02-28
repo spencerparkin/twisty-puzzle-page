@@ -472,10 +472,50 @@ class PentacleCube(RubiksCube):
     def min_mesh_area(self):
         return 0.05
 
+class MixupCube(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+        return True if i < 6 else False
+    
+    def make_generator_mesh_list(self):
+
+        q = math.tan(math.pi / 8.0)
+
+        l_cut_disk = TriangleMesh.make_disk(Vector(-q, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4)
+        r_cut_disk = TriangleMesh.make_disk(Vector(q, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4)
+        d_cut_disk = TriangleMesh.make_disk(Vector(0.0, -q, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4)
+        u_cut_disk = TriangleMesh.make_disk(Vector(0.0, q, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4)
+        b_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, -q), Vector(0.0, 0.0, 1.0), 4.0, 4)
+        f_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, q), Vector(0.0, 0.0, -1.0), 4.0, 4)
+
+        l_cut_disk = GeneratorMesh(mesh=l_cut_disk, axis=Vector(-1.0, 0.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(-1.0, 0.0, 0.0))
+        r_cut_disk = GeneratorMesh(mesh=r_cut_disk, axis=Vector(1.0, 0.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(1.0, 0.0, 0.0))
+        d_cut_disk = GeneratorMesh(mesh=d_cut_disk, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, -1.0, 0.0))
+        u_cut_disk = GeneratorMesh(mesh=u_cut_disk, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 1.0, 0.0))
+        b_cut_disk = GeneratorMesh(mesh=b_cut_disk, axis=Vector(0.0, 0.0, -1.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 0.0, -1.0))
+        f_cut_disk = GeneratorMesh(mesh=f_cut_disk, axis=Vector(0.0, 0.0, 1.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 0.0, 1.0))
+
+        mesh_list = [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
+
+        center_slice = TriangleMesh.make_disk(Vector(-q, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4) + TriangleMesh.make_disk(Vector(q, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4)
+        mesh_list.append(GeneratorMesh(mesh=center_slice, axis=Vector(1.0, 0.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(1.5, 0.0, 0.0)))
+        mesh_list.append(GeneratorMesh(mesh=center_slice, axis=Vector(-1.0, 0.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(-1.5, 0.0, 0.0)))
+
+        center_slice = TriangleMesh.make_disk(Vector(0.0, -q, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4) + TriangleMesh.make_disk(Vector(0.0, q, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4)
+        mesh_list.append(GeneratorMesh(mesh=center_slice, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 1.5, 0.0)))
+        mesh_list.append(GeneratorMesh(mesh=center_slice, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(0.0, -1.5, 0.0)))
+
+        center_slice = TriangleMesh.make_disk(Vector(0.0, 0.0, -q), Vector(0.0, 0.0, -1.0), 4.0, 4) + TriangleMesh.make_disk(Vector(0.0, 0.0, q), Vector(0.0, 0.0, 1.0), 4.0, 4)
+        mesh_list.append(GeneratorMesh(mesh=center_slice, axis=Vector(0.0, 0.0, 1.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 0.0, 1.5)))
+        mesh_list.append(GeneratorMesh(mesh=center_slice, axis=Vector(0.0, 0.0, -1.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 0.0, -1.5)))
+
+        return mesh_list
+
 # TODO: Add dogic.
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
-# TODO: Add mixup cube.
 # TODO: Add pyraminx.
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
