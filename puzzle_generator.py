@@ -39,9 +39,10 @@ class ColoredMesh(TriangleMesh):
         
         super().render()
 
-    def scale(self, scale_factor):
-        # Hmmm...this wont' quite work for concave shapes.
-        center = super().calc_center()
+    def scale(self, scale_factor, center=None):
+        if center is None:
+            # Hmmm...this wont' quite work for concave shapes.
+            center = super().calc_center()
         for i, vertex in enumerate(self.vertex_list):
             vector = vertex - center
             vector = vector * scale_factor
@@ -182,16 +183,12 @@ class PuzzleDefinitionBase(object):
             cut_pass += 1
 
         for mesh in mesh_list:
-            if self.can_shrink_mesh(mesh):
-                mesh.scale(self.shrink_scale())
+            self.shrink_mesh(mesh)
 
         return mesh_list, generator_mesh_list
-    
-    def shink_scale(self):
-        return 0.95
-    
-    def can_shrink_mesh(self, mesh):
-        return True
+
+    def shrink_mesh(self, mesh, center=None):
+        mesh.scale(0.95, center=center)
     
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
         return False

@@ -457,6 +457,17 @@ class PentacleCube(RubiksCube):
 
     def shrink_scale(self):
         return 0.90
+
+    def shrink_mesh(self, mesh, center=None):
+        from math3d_point_cloud import PointCloud
+        for point in Vector(1.0, 1.0, 1.0).sign_permute():
+            if any([(vertex - point).length() < 1e-4 for vertex in mesh.vertex_list]):
+                point_cloud = PointCloud(mesh.vertex_list)
+                for i in range(30):
+                    point_cloud.point_list.append(point)
+                center = point_cloud.calc_center()
+                break
+        super().shrink_mesh(mesh, center=center)
     
     def min_mesh_area(self):
         return 0.05
