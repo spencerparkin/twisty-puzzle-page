@@ -7,6 +7,7 @@ from math3d_triangle_mesh import TriangleMesh, Polyhedron
 from math3d_vector import Vector
 from math3d_transform import AffineTransform, LinearTransform
 from math3d_sphere import Sphere
+from math3d_point_cloud import PointCloud
 from puzzle_generator import GeneratorMesh
 
 class RubiksCube(PuzzleDefinitionBase):
@@ -513,12 +514,42 @@ class MixupCube(PuzzleDefinitionBase):
 
         return mesh_list
 
-# TODO: Add dogic.
+
+class Dogic(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_initial_mesh_list(self):
+        self.mesh = TriangleMesh().make_polyhedron(Polyhedron.ICOSAHEDRON)
+        face_mesh_list, plane_list = self.make_face_meshes(self.mesh.clone())
+        return face_mesh_list
+
+    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+        return False if i % 2 == 0 else True
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+        for vertex in self.mesh.vertex_list:
+            point_cloud = PointCloud()
+            for triangle in self.mesh.yield_triangles():
+                for i in range(3):
+                    if triangle[i] == vertex:
+                        point_cloud.add_point(triangle[i + 1])
+                        point_cloud.add_point(triangle[i + 2])
+                        break
+            center = point_cloud.calc_center()
+            normal = vertex.normalized()
+            disk = TriangleMesh.make_disk(center, -normal, 4.0, 4)
+            mesh_list.append(GeneratorMesh(mesh=disk, axis=normal, angle=2.0 * math.pi / 5.0, pick_point=vertex))
+            disk = TriangleMesh.make_disk((center + vertex) / 2.0, -normal, 4.0, 4)
+            mesh_list.append(GeneratorMesh(mesh=disk, axis=normal, angle=2.0 * math.pi / 5.0, pick_point=vertex * 1.2))
+        return mesh_list
+
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: Add pyraminx.
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
 # TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.
-# TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
+# TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.  To do what I'm thinking here, we may have to support rigid-body transforms, not just rotations for each generator.
 # TODO: Add Gem series?
