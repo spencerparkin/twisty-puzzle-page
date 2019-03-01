@@ -553,3 +553,4 @@ class Dogic(PuzzleDefinitionBase):
 # TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.  To do what I'm thinking here, we may have to support rigid-body transforms, not just rotations for each generator.
 # TODO: Add Gem series?
+# TODO: To add the 4x4x5 bubbloid, I'll need to add support for rigid-body transforms, not just rotations.
