@@ -390,7 +390,7 @@ class PentacleCube(RubiksCube):
         
         return mesh_list
 
-    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
         if cut_pass == 0 and i >= 6:
             return True
         
@@ -477,7 +477,7 @@ class MixupCube(PuzzleDefinitionBase):
     def __init__(self):
         super().__init__()
 
-    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
         return True if i < 6 else False
     
     def make_generator_mesh_list(self):
@@ -523,7 +523,7 @@ class Dogic(PuzzleDefinitionBase):
         face_mesh_list, plane_list = self.make_face_meshes(self.mesh.clone())
         return face_mesh_list
 
-    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
         return False if i % 2 == 0 else True
 
     def make_generator_mesh_list(self):
@@ -568,17 +568,53 @@ class Bubbloid4x4x5(PuzzleDefinitionBase):
         return mesh_list
 
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
-        #for i in range(8):
-        #    if 2 * i <= cut_pass <= 2 * i + 2:
-        #        self.apply_generator(mesh_list, generator_mesh_list[i])
 
-        if 0 <= cut_pass <= 2:
+        # TODO: The top and bottom get fully cut, but not the middle.
+
+        if cut_pass == 0 or cut_pass == 1 or cut_pass == 2:
             self.apply_generator(mesh_list, generator_mesh_list[0])
-
-        if 2 <= cut_pass <= 4:
+        if cut_pass == 2 or cut_pass == 3 or cut_pass == 4:
             self.apply_generator(mesh_list, generator_mesh_list[1])
+        if cut_pass == 4 or cut_pass == 5 or cut_pass == 6:
+            self.apply_generator(mesh_list, generator_mesh_list[2])
+        if cut_pass == 6 or cut_pass == 7 or cut_pass == 8:
+            self.apply_generator(mesh_list, generator_mesh_list[3])
+        if cut_pass == 8 or cut_pass == 9 or cut_pass == 10:
+            self.apply_generator(mesh_list, generator_mesh_list[4])
+        if cut_pass == 10 or cut_pass == 11 or cut_pass == 12:
+            self.apply_generator(mesh_list, generator_mesh_list[5])
+        if cut_pass == 12 or cut_pass == 13 or cut_pass == 14:
+            self.apply_generator(mesh_list, generator_mesh_list[6])
+        if cut_pass == 14 or cut_pass == 15 or cut_pass == 16:
+            self.apply_generator(mesh_list, generator_mesh_list[7])
 
-        return True if cut_pass < 4 else False
+        return True if cut_pass < 16 else False
+
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
+        if cut_pass == 0:
+            return True
+
+        if cut_pass == 1 or cut_pass == 2:
+            vector = generator_mesh_list[0].axis.resized(math.sqrt(3.0))
+        elif cut_pass == 3 or cut_pass == 4:
+            vector = generator_mesh_list[1].axis.resized(math.sqrt(3.0))
+        elif cut_pass == 5 or cut_pass == 6:
+            vector = generator_mesh_list[2].axis.resized(math.sqrt(3.0))
+        elif cut_pass == 7 or cut_pass == 8:
+            vector = generator_mesh_list[3].axis.resized(math.sqrt(3.0))
+        elif cut_pass == 9 or cut_pass == 10:
+            vector = generator_mesh_list[4].axis.resized(math.sqrt(3.0))
+        elif cut_pass == 11 or cut_pass == 12:
+            vector = generator_mesh_list[5].axis.resized(math.sqrt(3.0))
+        elif cut_pass == 13 or cut_pass == 14:
+            vector = generator_mesh_list[6].axis.resized(math.sqrt(3.0))
+        elif cut_pass == 15 or cut_pass == 16:
+            vector = generator_mesh_list[7].axis.resized(math.sqrt(3.0))
+
+        distance = (vector - cut_mesh.axis.resized(math.sqrt(3.0))).length()
+        if math.fabs(distance - 2.0) < 1e-5:
+            return True
+        return False
 
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.

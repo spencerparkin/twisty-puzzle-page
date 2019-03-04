@@ -144,7 +144,7 @@ class PuzzleDefinitionBase(object):
     def min_mesh_area(self):
         return 0.001
     
-    def can_apply_cutmesh_for_pass(self, i, cut_pass):
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
         return True
 
     def generate_final_mesh_list(self):
@@ -157,7 +157,7 @@ class PuzzleDefinitionBase(object):
             
             # Cut all the meshes against all the generator meshes.
             for i, cut_mesh in enumerate(generator_mesh_list):
-                if self.can_apply_cutmesh_for_pass(i, cut_pass):
+                if self.can_apply_cutmesh_for_pass(i, cut_mesh, cut_pass, generator_mesh_list):
                     print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
                     new_mesh_list = []
                     for mesh in mesh_list:
