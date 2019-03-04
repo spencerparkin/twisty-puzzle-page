@@ -567,6 +567,11 @@ class Bubbloid4x4x5(PuzzleDefinitionBase):
             mesh_list.append(mesh)
         return mesh_list
 
+    def find_generator_with_axis(self, generator_mesh_list, axis):
+        for mesh in generator_mesh_list:
+            if (mesh.axis - axis.normalized()).length() < 1e-6:
+                return mesh
+
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
 
         # TODO: The top and bottom get fully cut, but not the middle.
@@ -587,33 +592,63 @@ class Bubbloid4x4x5(PuzzleDefinitionBase):
             self.apply_generator(mesh_list, generator_mesh_list[6])
         if cut_pass == 14 or cut_pass == 15 or cut_pass == 16:
             self.apply_generator(mesh_list, generator_mesh_list[7])
+        if cut_pass == 16:
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, 1.0, 1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, 1.0, -1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, 1.0, -1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, 1.0, 1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, 1.0, 1.0)), inverse=True)
+        elif cut_pass == 17:
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, 1.0, 1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, 1.0, 1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, 1.0, -1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, 1.0, -1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, 1.0, 1.0)))
 
-        return True if cut_pass < 16 else False
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, -1.0, 1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, -1.0, -1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, -1.0, -1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, -1.0, 1.0)))
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, -1.0, 1.0)))
+        elif cut_pass == 18:
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, -1.0, 1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, -1.0, 1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(-1.0, -1.0, -1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, -1.0, -1.0)), inverse=True)
+            self.apply_generator(mesh_list, self.find_generator_with_axis(generator_mesh_list, Vector(1.0, -1.0, 1.0)), inverse=True)
+
+        return True if cut_pass < 18 else False
 
     def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
         if cut_pass == 0:
             return True
 
-        if cut_pass == 1 or cut_pass == 2:
-            vector = generator_mesh_list[0].axis.resized(math.sqrt(3.0))
-        elif cut_pass == 3 or cut_pass == 4:
-            vector = generator_mesh_list[1].axis.resized(math.sqrt(3.0))
-        elif cut_pass == 5 or cut_pass == 6:
-            vector = generator_mesh_list[2].axis.resized(math.sqrt(3.0))
-        elif cut_pass == 7 or cut_pass == 8:
-            vector = generator_mesh_list[3].axis.resized(math.sqrt(3.0))
-        elif cut_pass == 9 or cut_pass == 10:
-            vector = generator_mesh_list[4].axis.resized(math.sqrt(3.0))
-        elif cut_pass == 11 or cut_pass == 12:
-            vector = generator_mesh_list[5].axis.resized(math.sqrt(3.0))
-        elif cut_pass == 13 or cut_pass == 14:
-            vector = generator_mesh_list[6].axis.resized(math.sqrt(3.0))
-        elif cut_pass == 15 or cut_pass == 16:
-            vector = generator_mesh_list[7].axis.resized(math.sqrt(3.0))
-
-        distance = (vector - cut_mesh.axis.resized(math.sqrt(3.0))).length()
-        if math.fabs(distance - 2.0) < 1e-5:
-            return True
+        if 0 < cut_pass <= 16:
+            if cut_pass == 1 or cut_pass == 2:
+                vector = generator_mesh_list[0].axis.resized(math.sqrt(3.0))
+            elif cut_pass == 3 or cut_pass == 4:
+                vector = generator_mesh_list[1].axis.resized(math.sqrt(3.0))
+            elif cut_pass == 5 or cut_pass == 6:
+                vector = generator_mesh_list[2].axis.resized(math.sqrt(3.0))
+            elif cut_pass == 7 or cut_pass == 8:
+                vector = generator_mesh_list[3].axis.resized(math.sqrt(3.0))
+            elif cut_pass == 9 or cut_pass == 10:
+                vector = generator_mesh_list[4].axis.resized(math.sqrt(3.0))
+            elif cut_pass == 11 or cut_pass == 12:
+                vector = generator_mesh_list[5].axis.resized(math.sqrt(3.0))
+            elif cut_pass == 13 or cut_pass == 14:
+                vector = generator_mesh_list[6].axis.resized(math.sqrt(3.0))
+            elif cut_pass == 15 or cut_pass == 16:
+                vector = generator_mesh_list[7].axis.resized(math.sqrt(3.0))
+    
+            distance = (vector - cut_mesh.axis.resized(math.sqrt(3.0))).length()
+            return True if math.fabs(distance - 2.0) < 1e-5 else False
+        
+        if cut_pass == 17:
+            return True if math.fabs(cut_mesh.axis.resized(math.sqrt(3.0)).y + 1.0) < 1e-5 else False
+        if cut_pass == 18:
+            return True if math.fabs(cut_mesh.axis.resized(math.sqrt(3.0)).y - 1.0) < 1e-5 else False
+        
         return False
 
 # TODO: Add 4x4 and 2x2.
