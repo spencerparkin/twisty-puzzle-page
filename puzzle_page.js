@@ -105,6 +105,7 @@ class PuzzleMesh extends StaticTriangleMesh {
 class PuzzleGenerator {
     constructor(generator_data) {
         this.pick_point = vec3_create(generator_data.pick_point);
+        this.center = vec3_create(generator_data.center);
         this.axis = vec3_create(generator_data.axis);
         this.angle = generator_data.angle;
         this.plane_list = [];

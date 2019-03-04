@@ -7,7 +7,7 @@ import json
 sys.path.append(r'c:\dev\pyMath3d')
 
 from math3d_triangle_mesh import TriangleMesh, Polyhedron
-from math3d_transform import LinearTransform
+from math3d_transform import LinearTransform, AffineTransform
 from math3d_vector import Vector
 from math3d_side import Side
 
@@ -62,8 +62,9 @@ class ColoredMesh(TriangleMesh):
         return best_triangle.calc_center()
 
 class GeneratorMesh(TriangleMesh):
-    def __init__(self, mesh=None, axis=None, angle=None, pick_point=None):
+    def __init__(self, mesh=None, center=None, axis=None, angle=None, pick_point=None):
         super().__init__(mesh=mesh)
+        self.center = center if center is not None else Vector(0.0, 0.0, 0.0)
         self.axis = axis if axis is not None else Vector(0.0, 0.0, 1.0)
         self.angle = angle if angle is not None else 0.0
         self.pick_point = Vector(0.0, 0.0, 0.0) if pick_point is None else pick_point
@@ -73,6 +74,7 @@ class GeneratorMesh(TriangleMesh):
 
     def to_dict(self):
         data = super().to_dict()
+        data['center'] = self.center.to_dict()
         data['axis'] = self.axis.to_dict()
         data['angle'] = self.angle
         data['pick_point'] = self.pick_point.to_dict()
@@ -80,6 +82,7 @@ class GeneratorMesh(TriangleMesh):
     
     def from_dict(self, data):
         super().from_dict(data)
+        self.center = Vector().from_dict(data.get('center', {}))
         self.axis = Vector().from_dict(data.get('axis', {}))
         self.angle = data.get('angle', 0.0)
         self.pick_point = Vector().from_dict(data.get('pick_point', {}))
@@ -97,7 +100,7 @@ class GeneratorMesh(TriangleMesh):
         return True if self.side(center) == Side.BACK else False
 
     def transform_mesh(self, mesh, inverse=False):
-        transform = LinearTransform().make_rotation(self.axis, -self.angle if not inverse else self.angle)
+        transform = AffineTransform().make_rotation(self.axis, -self.angle if not inverse else self.angle, center=self.center)
         return transform(mesh)
 
 class PuzzleDefinitionBase(object):
@@ -143,7 +146,7 @@ class PuzzleDefinitionBase(object):
     
     def can_apply_cutmesh_for_pass(self, i, cut_pass):
         return True
-    
+
     def generate_final_mesh_list(self):
         mesh_list = self.make_initial_mesh_list()
         generator_mesh_list = self.make_generator_mesh_list()
@@ -164,7 +167,7 @@ class PuzzleDefinitionBase(object):
                         if len(front_mesh.triangle_list) > 0:
                             new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
                     mesh_list = new_mesh_list
-    
+
             # Cull meshes with area below a certain threshold to eliminate some artifacting.
             i = 0
             while i < len(mesh_list):
@@ -273,14 +276,14 @@ def main():
     from puzzle_definitions import CurvyCopterPlus, HelicopterCube, FlowerCopter
     from puzzle_definitions import Megaminx, DinoCube, FlowerRexCube, Skewb
     from puzzle_definitions import SquareOne, Bagua, PentacleCube, MixupCube
-    from puzzle_definitions import Dogic
+    from puzzle_definitions import Dogic, Bubbloid4x4x5
 
     puzzle_class_list = [
         RubiksCube, FisherCube, FusedCube, CurvyCopter,
         CurvyCopterPlus, HelicopterCube, FlowerCopter,
         Megaminx, DinoCube, FlowerRexCube, Skewb,
         SquareOne, Bagua, PentacleCube, MixupCube,
-        Dogic
+        Dogic, Bubbloid4x4x5
     ]
 
     arg_parser = argparse.ArgumentParser()

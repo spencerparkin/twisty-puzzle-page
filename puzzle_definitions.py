@@ -514,7 +514,6 @@ class MixupCube(PuzzleDefinitionBase):
 
         return mesh_list
 
-
 class Dogic(PuzzleDefinitionBase):
     def __init__(self):
         super().__init__()
@@ -545,12 +544,47 @@ class Dogic(PuzzleDefinitionBase):
             mesh_list.append(GeneratorMesh(mesh=disk, axis=normal, angle=2.0 * math.pi / 5.0, pick_point=vertex * 1.2))
         return mesh_list
 
+class Bubbloid4x4x5(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+        self.a = 2.0 - math.sqrt(2.0)
+        self.b = 1.0 - self.a
+        self.s = (2.0 * self.a + 3.0 * self.b) / (2.0 * self.a + 2.0 * self.b)
+
+    def make_initial_mesh_list(self):
+        mesh_list = super().make_initial_mesh_list()
+        scale_transform = LinearTransform().make_non_uniform_scale(1.0, self.s, 1.0)
+        mesh_list = [scale_transform(mesh) for mesh in mesh_list]
+        return mesh_list
+
+    def make_generator_mesh_list(self):
+        scale_transform = LinearTransform().make_non_uniform_scale(1.0, self.s, 1.0)
+        radius = self.a + 2.0 * self.b
+        mesh_list = []
+        for vector in Vector(1.0, 1.0, 1.0).sign_permute():
+            center = scale_transform(vector)
+            mesh = GeneratorMesh(mesh=Sphere(center, radius).make_mesh(subdivision_level=1), axis=vector.normalized(), angle=2.0 * math.pi / 3.0, center=center, pick_point=center)
+            mesh_list.append(mesh)
+        return mesh_list
+
+    def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
+        #for i in range(8):
+        #    if 2 * i <= cut_pass <= 2 * i + 2:
+        #        self.apply_generator(mesh_list, generator_mesh_list[i])
+
+        if 0 <= cut_pass <= 2:
+            self.apply_generator(mesh_list, generator_mesh_list[0])
+
+        if 2 <= cut_pass <= 4:
+            self.apply_generator(mesh_list, generator_mesh_list[1])
+
+        return True if cut_pass < 4 else False
+
 # TODO: Add 4x4 and 2x2.
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: Add pyraminx.
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
 # TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.
-# TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.  To do what I'm thinking here, we may have to support rigid-body transforms, not just rotations for each generator.
+# TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add Gem series?
-# TODO: To add the 4x4x5 bubbloid, I'll need to add support for rigid-body transforms, not just rotations.
