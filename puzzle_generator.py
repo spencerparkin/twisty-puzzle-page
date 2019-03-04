@@ -222,6 +222,17 @@ class PuzzleDefinitionBase(object):
     def annotate_puzzle_data(self, puzzle_data):
         pass
     
+    def cull_near_degenerate_triangles(self, mesh_list, eps=0.05):
+        # Cutting can mess up if there are near-degenerate triangles in the mesh, so try to remove them now.
+        i = 0
+        while i < len(mesh_list):
+            mesh = mesh_list[i]
+            mesh.reduce_vertices(eps)
+            if len(mesh.triangle_list) == 0:
+                del mesh_list[i]
+            else:
+                i += 1
+    
     def make_face_meshes(self, mesh):
         face_mesh_list = []
         plane_list = []

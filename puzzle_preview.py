@@ -66,7 +66,7 @@ class PreviewWindow(QtGui.QOpenGLWindow):
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
-        glClearColor(1.0, 1.0, 1.0, 0.0)
+        glClearColor(0.0, 0.0, 0.0, 0.0)
 
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
