@@ -8,8 +8,28 @@ var frames_per_second = 60.0;
 
 function vec3_create(data) {
     let vec = vec3.create();
-    vec3.set(vec, data.x, data.y, data.z);
+    if(data)
+        vec3.set(vec, data.x, data.y, data.z);
+    else
+        vec3.set(vec, 0.0, 0.0, 0.0);
     return vec;
+}
+
+function mat4_rotate_about_center(result, center, axis, angle) {
+    let neg_center = vec3.create();
+    vec3.negate(neg_center, center);
+
+    let translation_matrix = mat4.create();
+    mat4.fromTranslation(translation_matrix, center);
+
+    let inv_translation_matrix = mat4.create();
+    mat4.fromTranslation(inv_translation_matrix, neg_center);
+
+    let rotation_matrix = mat4.create();
+    mat4.fromRotation(rotation_matrix, angle, axis);
+
+    mat4.multiply(result, rotation_matrix, inv_translation_matrix);
+    mat4.multiply(result, translation_matrix, result);
 }
 
 class PuzzleMesh extends StaticTriangleMesh {
@@ -19,6 +39,7 @@ class PuzzleMesh extends StaticTriangleMesh {
         this.color = vec3_create(mesh_data.color);
         this.center = vec3_create(mesh_data.center);
         this.permutation_transform = mat4.create(); // Takes the mesh from the solved state to the scrambled state.
+        this.animation_center = vec3_create({x: 0.0, y: 0.0, z: 0.0});
         this.animation_axis = vec3_create({x: 1.0, y: 0.0, z: 0.0});
         this.animation_angle = 0.0;
         this.highlight = false;
@@ -59,7 +80,7 @@ class PuzzleMesh extends StaticTriangleMesh {
 
         let animation_transform = mat4.create();
         if(this.animation_angle != 0.0)
-            mat4.fromRotation(animation_transform, this.animation_angle, this.animation_axis);
+            mat4_rotate_about_center(animation_transform, this.animation_center, this.animation_axis, this.animation_angle);
 
         let animation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'animation_transform_matrix');
         gl.uniformMatrix4fv(animation_transform_matrix_loc, false, animation_transform);
@@ -151,11 +172,12 @@ class PuzzleMove {
         let angle = this.override_angle ? this.override_angle : this.generator.angle;
         
         let permutation_transform = mat4.create();
-        mat4.fromRotation(permutation_transform, this.inverse ? angle : -angle, this.generator.axis);
+        mat4_rotate_about_center(permutation_transform, this.generator.center, this.generator.axis, this.inverse ? angle : -angle);
 
         // The puzzle must not be animating at this moment for this to work.
         puzzle.for_captured_meshes(this.generator, mesh => {
             mat4.multiply(mesh.permutation_transform, permutation_transform, mesh.permutation_transform);
+            vec3.copy(mesh.animation_center, this.generator.center);
             vec3.copy(mesh.animation_axis, this.generator.axis);
             mesh.animation_angle = this.inverse ? -angle : angle;
         });
