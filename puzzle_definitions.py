@@ -711,6 +711,32 @@ class Rubiks4x4(PuzzleDefinitionBase):
 
         return mesh_list
 
+class Pyraminx(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_initial_mesh_list(self):
+        self.mesh = TriangleMesh().make_polyhedron(Polyhedron.TETRAHEDRON)
+        self.mesh = LinearTransform().make_uniform_scale(1.5)(self.mesh)
+        triangle = self.mesh.make_triangle(self.mesh.find_triangle((0, 1, 2), True, True))
+        plane = triangle.calc_plane()
+        self.distance = -plane.point_distance(self.mesh.vertex_list[3])
+        face_mesh_list, plane_list = self.make_face_meshes(self.mesh.clone())
+        return face_mesh_list
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+
+        for triangle in self.mesh.yield_triangles():
+            center = triangle.calc_center()
+            plane = triangle.calc_plane()
+            disk = TriangleMesh.make_disk(center - plane.unit_normal * self.distance / 3.0, -plane.unit_normal, 8.0, 4)
+            mesh_list.append(GeneratorMesh(mesh=disk, axis=plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=center))
+            disk = TriangleMesh.make_disk(center - plane.unit_normal * 2.0 * self.distance / 3.0, plane.unit_normal, 8.0, 4)
+            mesh_list.append(GeneratorMesh(mesh=disk, axis=-plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=center - plane.unit_normal * self.distance))
+
+        return mesh_list
+
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: Add pyraminx.
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
