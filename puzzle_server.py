@@ -21,6 +21,7 @@ class PuzzleServer(object):
                 for file in file_list:
                     name, ext = os.path.splitext(file)
                     menu_list.append(name)
+            menu_list.sort()
             return menu_list
         except Exception as ex:
             return {'error': str(ex)}
