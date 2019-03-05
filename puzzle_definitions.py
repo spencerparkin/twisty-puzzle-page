@@ -563,7 +563,7 @@ class Bubbloid4x4x5(PuzzleDefinitionBase):
         mesh_list = []
         for vector in Vector(1.0, 1.0, 1.0).sign_permute():
             center = scale_transform(vector)
-            mesh = GeneratorMesh(mesh=Sphere(center, radius).make_mesh(subdivision_level=1), axis=vector.normalized(), angle=2.0 * math.pi / 3.0, center=center, pick_point=center)
+            mesh = GeneratorMesh(mesh=Sphere(center, radius).make_mesh(subdivision_level=2), axis=vector.normalized(), angle=2.0 * math.pi / 3.0, center=center, pick_point=center)
             mesh_list.append(mesh)
         return mesh_list
 
