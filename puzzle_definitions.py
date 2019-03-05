@@ -738,7 +738,6 @@ class Pyraminx(PuzzleDefinitionBase):
         return mesh_list
 
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
-# TODO: Add pyraminx.
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
 # TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.
