@@ -730,12 +730,20 @@ class Pyraminx(PuzzleDefinitionBase):
         for triangle in self.mesh.yield_triangles():
             center = triangle.calc_center()
             plane = triangle.calc_plane()
+            
             disk = TriangleMesh.make_disk(center - plane.unit_normal * self.distance / 3.0, -plane.unit_normal, 8.0, 4)
             mesh_list.append(GeneratorMesh(mesh=disk, axis=plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=center))
-            disk = TriangleMesh.make_disk(center - plane.unit_normal * 2.0 * self.distance / 3.0, plane.unit_normal, 8.0, 4)
+
+            disk = TriangleMesh.make_disk(center - plane.unit_normal * self.distance / 3.0, plane.unit_normal, 8.0, 4)
             mesh_list.append(GeneratorMesh(mesh=disk, axis=-plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=center - plane.unit_normal * self.distance))
+            
+            disk = TriangleMesh.make_disk(center - plane.unit_normal * 2.0 * self.distance / 3.0, plane.unit_normal, 8.0, 4)
+            mesh_list.append(GeneratorMesh(mesh=disk, axis=-plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=center - plane.unit_normal * self.distance * 1.1))
 
         return mesh_list
+
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
+        return False if i % 3 == 1 else True
 
 class BauhiniaDodecahedron(PuzzleDefinitionBase):
     def __init__(self):
