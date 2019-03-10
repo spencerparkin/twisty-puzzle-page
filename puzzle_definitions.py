@@ -737,6 +737,45 @@ class Pyraminx(PuzzleDefinitionBase):
 
         return mesh_list
 
+class BauhiniaDodecahedron(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_initial_mesh_list(self):
+        mesh = TriangleMesh().make_polyhedron(Polyhedron.DODECAHEDRON)
+        self.vertex_list = [vertex for vertex in mesh.vertex_list]
+        face_mesh_list, plane_list = self.make_face_meshes(mesh)
+        face = face_mesh_list[0]
+        loop_list = face.find_boundary_loops()
+        self.edge_length = (face.vertex_list[loop_list[0][0]] - face.vertex_list[loop_list[0][1]]).length()
+        return face_mesh_list
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+
+        for vertex in self.vertex_list:
+            mesh = GeneratorMesh(mesh=Sphere(vertex, self.edge_length).make_mesh(subdivision_level=2), axis=vertex.normalized(), angle=2.0 * math.pi / 3.0, pick_point=vertex)
+            mesh_list.append(mesh)
+
+        return mesh_list
+
+class SkewbUltimate(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_initial_mesh_list(self):
+        mesh = TriangleMesh().make_polyhedron(Polyhedron.DODECAHEDRON)
+        face_mesh_list, plane_list = self.make_face_meshes(mesh)
+        return face_mesh_list
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+        normal_list = [point.normalized() for point in Vector(1.0, 1.0, 1.0).sign_permute()]
+        for normal in normal_list:
+            mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), normal, 4.0, 4), axis=-normal, angle=2.0 * math.pi / 3.0, pick_point=normal * -1.5)
+            mesh_list.append(mesh)
+        return mesh_list
+
 # TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.

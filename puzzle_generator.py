@@ -288,7 +288,7 @@ def main():
     from puzzle_definitions import Megaminx, DinoCube, FlowerRexCube, Skewb
     from puzzle_definitions import SquareOne, Bagua, PentacleCube, MixupCube
     from puzzle_definitions import Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4
-    from puzzle_definitions import Pyraminx
+    from puzzle_definitions import Pyraminx, BauhiniaDodecahedron, SkewbUltimate
 
     puzzle_class_list = [
         RubiksCube, FisherCube, FusedCube, CurvyCopter,
@@ -296,7 +296,7 @@ def main():
         Megaminx, DinoCube, FlowerRexCube, Skewb,
         SquareOne, Bagua, PentacleCube, MixupCube,
         Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4,
-        Pyraminx
+        Pyraminx, BauhiniaDodecahedron, SkewbUltimate
     ]
 
     arg_parser = argparse.ArgumentParser()
