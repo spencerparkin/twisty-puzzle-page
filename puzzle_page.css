@@ -12,6 +12,16 @@ body {
     overflow-x: hidden;
 }
 
+#loading_gif {
+    z-index: 1;
+    position: fixed;
+    display: none;
+    width: 50%;
+    height: 50%;
+    top: 25%;
+    left: 25%;
+}
+
 #puzzle_menu {
     z-index: 1;
     position: absolute;

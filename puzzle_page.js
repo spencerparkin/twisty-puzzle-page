@@ -693,9 +693,11 @@ function menu_animate() {
 }
 
 function menu_item_clicked(menu_item) {
+    $('#loading_gif').show();
     puzzle.name = menu_item;
     puzzle.promise().then(() => {
         render_scene();
+        $('#loading_gif').hide();
     });
 }
 
@@ -730,11 +732,13 @@ function document_ready() {
             
             shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
             
+            $('#loading_gif').show();
             Promise.all([
                 shader_program.promise(),
                 puzzle.promise()
             ]).then(() => {
-                
+                $('#loading_gif').hide();
+
                 $(window).bind('resize', function() {
                     render_scene();
                     menu_update();
