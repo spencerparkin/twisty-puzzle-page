@@ -10,11 +10,13 @@ from math3d_triangle_mesh import TriangleMesh, Polyhedron
 from math3d_transform import LinearTransform, AffineTransform
 from math3d_vector import Vector
 from math3d_side import Side
+from math3d_point_cloud import PointCloud
 
 class ColoredMesh(TriangleMesh):
     def __init__(self, mesh=None, color=None):
         super().__init__(mesh=mesh)
         self.color = color if color is not None else Vector(0.0, 0.0, 0.0)
+        self.uv_list = []
 
     def clone(self):
         return ColoredMesh(mesh=super().clone(), color=self.color.clone())
@@ -22,11 +24,13 @@ class ColoredMesh(TriangleMesh):
     def to_dict(self):
         data = super().to_dict()
         data['color'] = self.color.to_dict()
+        data['uv_list'] = [uv.to_dict() for uv in self.uv_list]
         return data
 
     def from_dict(self, data):
         super().from_dict(data)
         self.color = Vector().from_dict(data.get('color', {}))
+        self.uv_list = [Vector().from_dict(uv) for uv in data.get('uv_list', [])]
         return self
     
     def render(self):
@@ -148,7 +152,8 @@ class PuzzleDefinitionBase(object):
         return True
 
     def generate_final_mesh_list(self):
-        mesh_list = self.make_initial_mesh_list()
+        initial_mesh_list = self.make_initial_mesh_list()
+        final_mesh_list = [mesh.clone() for mesh in initial_mesh_list]
         generator_mesh_list = self.make_generator_mesh_list()
         
         cut_pass = 0
@@ -160,35 +165,36 @@ class PuzzleDefinitionBase(object):
                 if self.can_apply_cutmesh_for_pass(i, cut_mesh, cut_pass, generator_mesh_list):
                     print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
                     new_mesh_list = []
-                    for mesh in mesh_list:
+                    for mesh in final_mesh_list:
                         back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
                         if len(back_mesh.triangle_list) > 0:
                             new_mesh_list.append(ColoredMesh(mesh=back_mesh, color=mesh.color))
                         if len(front_mesh.triangle_list) > 0:
                             new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
-                    mesh_list = new_mesh_list
+                    final_mesh_list = new_mesh_list
 
             # Cull meshes with area below a certain threshold to eliminate some artifacting.
             i = 0
-            while i < len(mesh_list):
-                mesh = mesh_list[i]
+            while i < len(final_mesh_list):
+                mesh = final_mesh_list[i]
                 area = mesh.area()
                 if area < self.min_mesh_area():
-                    del mesh_list[i]
+                    del final_mesh_list[i]
                 else:
                     i += 1
             
             # Give the class a chance to transform the meshes for another round of cutting.
             # Before iteration completes, however, the class needs to make sure all meshes properly placed.
-            if not self.transform_meshes_for_more_cutting(mesh_list, generator_mesh_list, cut_pass):
+            if not self.transform_meshes_for_more_cutting(final_mesh_list, generator_mesh_list, cut_pass):
                 break
             
             cut_pass += 1
 
-        for mesh in mesh_list:
+        # This gives each face a sense that it has a border.
+        for mesh in final_mesh_list:
             self.shrink_mesh(mesh)
 
-        return mesh_list, generator_mesh_list
+        return final_mesh_list, initial_mesh_list, generator_mesh_list
 
     def shrink_mesh(self, mesh, center=None):
         mesh.scale(0.95, center=center)
@@ -202,7 +208,9 @@ class PuzzleDefinitionBase(object):
                 mesh_list[i] = generator_mesh.transform_mesh(mesh, inverse)
     
     def generate_puzzle_file(self):
-        final_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
+        final_mesh_list, initial_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
+        
+        self.calculate_uvs(final_mesh_list, initial_mesh_list)
         
         puzzle_data = {
             'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
@@ -218,6 +226,38 @@ class PuzzleDefinitionBase(object):
             handle.write(json_text)
         
         return puzzle_path
+
+    def calculate_uvs(self, final_mesh_list, initial_mesh_list):
+        for mesh in initial_mesh_list:
+            plane = PointCloud(mesh.vertex_list).fit_plane()
+            x_axis = plane.unit_normal.perpendicular_vector().normalized()
+            y_axis = plane.unit_normal.cross(x_axis)
+            z_axis = plane.unit_normal.clone()
+            transform = AffineTransform(x_axis=x_axis, y_axis=y_axis, z_axis=z_axis, translation=plane.center)
+            inverse_transform = transform.calc_inverse()
+            x_min = 1000.0
+            x_max = -1000.0
+            y_min = 1000.0
+            y_max = -1000.0
+            vertex_list = [inverse_transform(vertex) for vertex in mesh.vertex_list]
+            for vertex in vertex_list:
+                if vertex.x < x_min:
+                    x_min = vertex.x
+                if vertex.x > x_max:
+                    x_max = vertex.x
+                if vertex.y < y_min:
+                    y_min = vertex.y
+                if vertex.y > y_max:
+                    y_max = vertex.y
+            for face_mesh in final_mesh_list:
+                center = face_mesh.calc_center()
+                if plane.side(center, eps=1e-4) == Side.NEITHER:
+                    face_mesh.uv_list = []
+                    vertex_list = [inverse_transform(vertex) for vertex in face_mesh.vertex_list]
+                    for vertex in vertex_list:
+                        u = (vertex.x - x_min) / (x_max - x_min)
+                        v = (vertex.y - y_min) / (y_max - y_min)
+                        face_mesh.uv_list.append(Vector(u, v, 0.0))
 
     def annotate_puzzle_data(self, puzzle_data):
         pass
