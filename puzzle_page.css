@@ -28,7 +28,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 20%;
+    height: 10%;
     background-color: #ffffff00;
     font-size: 0;
     white-space: nowrap;
@@ -70,7 +70,7 @@ body {
 .puzzle_icon {
     position: relative;
     width: auto;
-    height: 50%;
+    height: 100%;
 }
 
 .slider {
