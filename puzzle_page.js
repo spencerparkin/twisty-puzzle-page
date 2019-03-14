@@ -4,6 +4,7 @@ var gl = undefined;
 var puzzle = undefined;
 var puzzle_sequence_generator = new PuzzleSequenceMoveGenerator();
 var shader_program = undefined;
+var puzzle_texture = undefined;
 var frames_per_second = 60.0;
 
 function vec3_create(data) {
@@ -35,7 +36,7 @@ function mat4_rotate_about_center(result, center, axis, angle) {
 class PuzzleMesh extends StaticTriangleMesh {
     constructor(mesh_data) {
         super();
-        this.generate(mesh_data.triangle_list, mesh_data.vertex_list);
+        this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list);
         this.color = vec3_create(mesh_data.color);
         this.center = vec3_create(mesh_data.center);
         this.permutation_transform = mat4.create(); // Takes the mesh from the solved state to the scrambled state.
@@ -85,9 +86,10 @@ class PuzzleMesh extends StaticTriangleMesh {
         let animation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'animation_transform_matrix');
         gl.uniformMatrix4fv(animation_transform_matrix_loc, false, animation_transform);
 
-        let vertex_loc = gl.getUniformLocation(shader_program.program, 'vertex');
+        let vertex_loc = gl.getAttribLocation(shader_program.program, 'vertex');
+        let uv_loc = gl.getAttribLocation(shader_program.program, 'vertexUVs');
         
-        super.render(vertex_loc);
+        super.render(vertex_loc, uv_loc);
     }
 
     is_captured_by_generator(generator) {
@@ -252,6 +254,12 @@ class Puzzle {
     
     render() {
         gl.useProgram(shader_program.program);
+
+        let blendFactor_loc = gl.getUniformLocation(shader_program.program, 'blendFactor');
+        gl.uniform1f(blendFactor_loc, 0.0);
+
+        let sampler_loc = gl.getUniformLocation(shader_program.program, 'texture');
+        puzzle_texture.bind(sampler_loc);
 
         let canvas = $('#puzzle_canvas')[0];
         let transform_matrix = calc_transform_matrix(canvas);
@@ -729,13 +737,14 @@ function document_ready() {
 	    promise_puzzle_menu().then(initial_puzzle => {
 	    
             puzzle = new Puzzle(initial_puzzle);
-            
             shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
-            
+            puzzle_texture = new Texture('images/face_texture.png');
+
             $('#loading_gif').show();
             Promise.all([
+                puzzle.promise(),
                 shader_program.promise(),
-                puzzle.promise()
+                puzzle_texture.promise()
             ]).then(() => {
                 $('#loading_gif').hide();
 

@@ -96,18 +96,21 @@ class Texture {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     }
     
-    bind() {
+    bind(sampler_loc) {
+        gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.tex);
+        gl.uniform1i(sampler_loc, 0);
     }
 }
 
-// TODO: What about texture coordinates?  What about lighting normals?
+// TODO: What about lighting normals?
 class StaticTriangleMesh {
     constructor() {
         this.index_buffer = undefined;
         this.vertex_buffer = undefined;
         this.triangle_list = [];
         this.vertex_list = [];
+        this.uv_list = [];
     }
     
     release() {
@@ -121,44 +124,56 @@ class StaticTriangleMesh {
         }
         this.triangle_list = [];
         this.vertex_list = [];
+        this.uv_list = [];
     }
     
-    generate(triangle_list, vertex_list) {
+    generate(triangle_list, vertex_list, uv_list) {
         this.release();
         
         this.triangle_list = triangle_list;
         this.vertex_list = vertex_list;
-        
-        this.index_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
-        
+        this.uv_list = uv_list;
+
         let index_list = [];
         for(let i = 0; i < triangle_list.length; i++) {
             for(let j = 0; j < 3; j++) {
                 index_list.push(triangle_list[i][j]);
             }
         }
-        
+
+        this.index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(index_list), gl.STATIC_DRAW);
-        
-        this.vertex_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-        
+
         let vertex_buffer_list = [];
         for(let i = 0; i < vertex_list.length; i++) {
             let vertex = vertex_list[i];
             vertex_buffer_list.push(vertex['x']);
             vertex_buffer_list.push(vertex['y']);
             vertex_buffer_list.push(vertex['z']);
+            if(uv_list) {
+                let uv = uv_list[i];
+                vertex_buffer_list.push(uv['x']);
+                vertex_buffer_list.push(uv['y']);
+            }
         }
-        
+
+        this.vertex_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertex_buffer_list), gl.STATIC_DRAW);
     }
     
-    render(vertex_loc) {
+    render(vertex_loc, uv_loc) {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-        gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
+
+        if(uv_loc && this.uv_list.length > 0) {
+            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 20, 0);
+            gl.vertexAttribPointer(uv_loc, 2, gl.FLOAT, false, 20, 12);
+        } else {
+            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
+        }
+
         gl.enableVertexAttribArray(vertex_loc);
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
