@@ -720,6 +720,23 @@ function blend_slider_moved(event) {
     render_scene();
 }
 
+function puzzle_image_file_chosen(event) {
+    let puzzle_image_input = document.getElementById('puzzle_image_input');
+    let files = puzzle_image_input.files;
+    if(files.length == 1) {
+        let file_reader = new FileReader();
+        $('#loading_gif').show();
+        file_reader.onload = () => {
+            puzzle_texture.source = file_reader.result;
+            puzzle_texture.promise().then(() => {
+                $('#loading_gif').hide();
+                render_scene();
+            });
+        }
+        file_reader.readAsDataURL(files[0]);
+    }
+}
+
 function document_ready() {
     try {
         let canvas = $('#puzzle_canvas')[0];
@@ -772,6 +789,9 @@ function document_ready() {
                 
                 let blend_slider = document.getElementById('puzzle_texture_blend_slider');
                 blend_slider.addEventListener('change', blend_slider_moved);
+                
+                let puzzle_image_input = document.getElementById('puzzle_image_input');
+                puzzle_image_input.addEventListener('change', puzzle_image_file_chosen);
             });
         });
         
