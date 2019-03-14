@@ -256,7 +256,7 @@ class Puzzle {
         gl.useProgram(shader_program.program);
 
         let blendFactor_loc = gl.getUniformLocation(shader_program.program, 'blendFactor');
-        gl.uniform1f(blendFactor_loc, 0.0);
+        gl.uniform1f(blendFactor_loc, 0.5);
 
         let sampler_loc = gl.getUniformLocation(shader_program.program, 'texture');
         puzzle_texture.bind(sampler_loc);
