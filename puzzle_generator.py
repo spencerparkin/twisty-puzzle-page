@@ -17,6 +17,7 @@ class ColoredMesh(TriangleMesh):
         super().__init__(mesh=mesh)
         self.color = color if color is not None else Vector(0.0, 0.0, 0.0)
         self.uv_list = []
+        self.normal_list = []
 
     def clone(self):
         return ColoredMesh(mesh=super().clone(), color=self.color.clone())
@@ -25,12 +26,14 @@ class ColoredMesh(TriangleMesh):
         data = super().to_dict()
         data['color'] = self.color.to_dict()
         data['uv_list'] = [uv.to_dict() for uv in self.uv_list]
+        data['normal_list'] = [normal.to_dict() for normal in self.normal_list]
         return data
 
     def from_dict(self, data):
         super().from_dict(data)
         self.color = Vector().from_dict(data.get('color', {}))
         self.uv_list = [Vector().from_dict(uv) for uv in data.get('uv_list', [])]
+        self.normal_list = [Vector().from_dict(normal) for normal in data.get('normal_list', [])]
         return self
     
     def render(self):
@@ -211,6 +214,7 @@ class PuzzleDefinitionBase(object):
         final_mesh_list, initial_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
         
         self.calculate_uvs(final_mesh_list, initial_mesh_list)
+        self.calculate_normals(final_mesh_list)
         
         puzzle_data = {
             'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
@@ -258,6 +262,10 @@ class PuzzleDefinitionBase(object):
                         u = (vertex.x - x_min) / (x_max - x_min)
                         v = (vertex.y - y_min) / (y_max - y_min)
                         face_mesh.uv_list.append(Vector(u, v, 0.0))
+
+    def calculate_normals(self, final_mesh_list):
+        for mesh in final_mesh_list:
+            mesh.normal_list = mesh.calc_vertex_normals()
 
     def annotate_puzzle_data(self, puzzle_data):
         pass
