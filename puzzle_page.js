@@ -6,6 +6,7 @@ var puzzle_sequence_generator = new PuzzleSequenceMoveGenerator();
 var shader_program = undefined;
 var puzzle_texture = undefined;
 var frames_per_second = 60.0;
+var blendFactor = 0.0;
 
 function vec3_create(data) {
     let vec = vec3.create();
@@ -251,7 +252,7 @@ class Puzzle {
         gl.useProgram(shader_program.program);
 
         let blendFactor_loc = gl.getUniformLocation(shader_program.program, 'blendFactor');
-        gl.uniform1f(blendFactor_loc, 0.5);
+        gl.uniform1f(blendFactor_loc, blendFactor);
 
         let sampler_loc = gl.getUniformLocation(shader_program.program, 'texture');
         puzzle_texture.bind(sampler_loc);
@@ -713,6 +714,12 @@ function sequence_input_key_down(event) {
     }
 }
 
+function blend_slider_moved(event) {
+    let blend_slider = document.getElementById('puzzle_texture_blend_slider');
+    blendFactor = blend_slider.value / 100.0;
+    render_scene();
+}
+
 function document_ready() {
     try {
         let canvas = $('#puzzle_canvas')[0];
@@ -762,6 +769,9 @@ function document_ready() {
                 
                 let sequence_input = document.getElementById('puzzle_prompt_input');
                 sequence_input.addEventListener('keydown', sequence_input_key_down);
+                
+                let blend_slider = document.getElementById('puzzle_texture_blend_slider');
+                blend_slider.addEventListener('change', blend_slider_moved);
             });
         });
         

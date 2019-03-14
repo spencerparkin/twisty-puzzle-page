@@ -28,7 +28,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 10%;
+    height: 20%;
     background-color: #ffffff00;
     font-size: 0;
     white-space: nowrap;
@@ -47,14 +47,13 @@ body {
     border-radius: 6px;
 }
 
-#puzzle_prompt {
+#puzzle_controls {
     z-index: 1;
     position: absolute;
     top: 90%;
     height: 10%;
     left: 20%;
     width: 60%;
-    background-color: $ff0000ff;
     white-space: nowrap;
     color: white;
 }
@@ -71,5 +70,24 @@ body {
 .puzzle_icon {
     position: relative;
     width: auto;
-    height: 100%;
+    height: 50%;
+}
+
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 200px;
+    outline: none;
+    border-radius: 10px;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background: #ff0000;
+    cursor: pointer;
 }
