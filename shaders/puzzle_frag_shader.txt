@@ -6,11 +6,14 @@ varying vec2 fragUVs;
 
 uniform vec3 color;
 uniform float blendFactor;
+uniform float highlightFactor;
 uniform sampler2D texture;
 
 void main()
 {
     vec4 texelColor = texture2D(texture, fragUVs);
+    vec4 color = blendFactor * vec4(color, 1.0) + (1.0 - blendFactor) * texelColor;
+    vec4 highlightColor = vec4(1.0, 1.0, 1.0, 1.0);
 
-    gl_FragColor = vec4(color, 1.0) * blendFactor + (1.0 - blendFactor) * texelColor;
+    gl_FragColor = (1.0 - highlightFactor) * color + highlightFactor * highlightColor;
 }

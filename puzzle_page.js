@@ -65,16 +65,11 @@ class PuzzleMesh extends StaticTriangleMesh {
     render() {
 
         let color_loc = gl.getUniformLocation(shader_program.program, 'color');
-
-        if(this.highlight) {
-            let highlight_color = vec3.create();
-            vec3.set(highlight_color, 1.0, 1.0, 1.0);
-            vec3.add(highlight_color, this.color, highlight_color);
-            vec3.scale(highlight_color, highlight_color, 0.5);
-            gl.uniform3fv(color_loc, highlight_color);
-        } else {
-            gl.uniform3fv(color_loc, this.color);
-        }
+        gl.uniform3fv(color_loc, this.color);
+        
+        let highlightFactor_loc = gl.getUniformLocation(shader_program.program, 'highlightFactor');
+        let highlightFactor = this.highlight ? 0.5 : 0.0;
+        gl.uniform1f(highlightFactor_loc, highlightFactor);
 
         let permutation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'permutation_transform_matrix');
         gl.uniformMatrix4fv(permutation_transform_matrix_loc, false, this.permutation_transform);
