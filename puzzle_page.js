@@ -3,7 +3,7 @@
 var gl = undefined;
 var puzzle = undefined;
 var puzzle_sequence_generator = new PuzzleSequenceMoveGenerator();
-var shader_program = undefined;
+var puzzle_shader = undefined;
 var puzzle_texture = undefined;
 var frames_per_second = 60.0;
 var blendFactor = 0.0;
@@ -65,25 +65,25 @@ class PuzzleMesh extends StaticTriangleMesh {
 
     render() {
 
-        let color_loc = gl.getUniformLocation(shader_program.program, 'color');
+        let color_loc = gl.getUniformLocation(puzzle_shader.program, 'color');
         gl.uniform3fv(color_loc, this.color);
         
-        let highlightFactor_loc = gl.getUniformLocation(shader_program.program, 'highlightFactor');
+        let highlightFactor_loc = gl.getUniformLocation(puzzle_shader.program, 'highlightFactor');
         let highlightFactor = this.highlight ? 0.5 : 0.0;
         gl.uniform1f(highlightFactor_loc, highlightFactor);
 
-        let permutation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'permutation_transform_matrix');
+        let permutation_transform_matrix_loc = gl.getUniformLocation(puzzle_shader.program, 'permutation_transform_matrix');
         gl.uniformMatrix4fv(permutation_transform_matrix_loc, false, this.permutation_transform);
 
         let animation_transform = mat4.create();
         if(this.animation_angle != 0.0)
             mat4_rotate_about_center(animation_transform, this.animation_center, this.animation_axis, this.animation_angle);
 
-        let animation_transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'animation_transform_matrix');
+        let animation_transform_matrix_loc = gl.getUniformLocation(puzzle_shader.program, 'animation_transform_matrix');
         gl.uniformMatrix4fv(animation_transform_matrix_loc, false, animation_transform);
 
-        let vertex_loc = gl.getAttribLocation(shader_program.program, 'vertex');
-        let uv_loc = gl.getAttribLocation(shader_program.program, 'vertexUVs');
+        let vertex_loc = gl.getAttribLocation(puzzle_shader.program, 'vertex');
+        let uv_loc = gl.getAttribLocation(puzzle_shader.program, 'vertexUVs');
         
         super.render(vertex_loc, uv_loc);
     }
@@ -249,17 +249,17 @@ class Puzzle {
     }
     
     render() {
-        gl.useProgram(shader_program.program);
+        gl.useProgram(puzzle_shader.program);
 
-        let blendFactor_loc = gl.getUniformLocation(shader_program.program, 'blendFactor');
+        let blendFactor_loc = gl.getUniformLocation(puzzle_shader.program, 'blendFactor');
         gl.uniform1f(blendFactor_loc, blendFactor);
 
-        let sampler_loc = gl.getUniformLocation(shader_program.program, 'texture');
+        let sampler_loc = gl.getUniformLocation(puzzle_shader.program, 'texture');
         puzzle_texture.bind(sampler_loc);
 
         let canvas = $('#puzzle_canvas')[0];
         let transform_matrix = calc_transform_matrix(canvas);
-        let transform_matrix_loc = gl.getUniformLocation(shader_program.program, 'transform_matrix');
+        let transform_matrix_loc = gl.getUniformLocation(puzzle_shader.program, 'transform_matrix');
         gl.uniformMatrix4fv(transform_matrix_loc, false, transform_matrix);
 
         for(let i = 0; i < this.mesh_list.length; i++) {
@@ -756,13 +756,13 @@ function document_ready() {
 	    promise_puzzle_menu().then(initial_puzzle => {
 	    
             puzzle = new Puzzle(initial_puzzle);
-            shader_program = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
+            puzzle_shader = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
             puzzle_texture = new Texture('images/face_texture.png');
 
             $('#loading_gif').show();
             Promise.all([
                 puzzle.promise(),
-                shader_program.promise(),
+                puzzle_shader.promise(),
                 puzzle_texture.promise()
             ]).then(() => {
                 $('#loading_gif').hide();
