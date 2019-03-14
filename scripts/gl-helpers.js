@@ -170,6 +170,7 @@ class StaticTriangleMesh {
         if(uv_loc && this.uv_list.length > 0) {
             gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 20, 0);
             gl.vertexAttribPointer(uv_loc, 2, gl.FLOAT, false, 20, 12);
+            gl.enableVertexAttribArray(uv_loc);
         } else {
             gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
         }

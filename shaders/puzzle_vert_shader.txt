@@ -3,7 +3,7 @@
 attribute vec3 vertex;
 attribute vec2 vertexUVs;
 
-varying highp vec2 fragUVs;
+varying vec2 fragUVs;
 
 uniform mat4 transform_matrix;
 uniform mat4 permutation_transform_matrix;
