@@ -6,7 +6,21 @@ var puzzle_sequence_generator = new PuzzleSequenceMoveGenerator();
 var puzzle_shader = undefined;
 var puzzle_texture_list = [];
 var frames_per_second = 60.0;
-var blendFactor = 1.0;
+var blendFactor = 0.0;
+
+function random_int(min_int, max_int) {
+    // This might not be perfectly uniform as it may be less likely to get min_int or max_int than anything inbetween.
+    return Math.round(min_int + Math.random() * (max_int - min_int));
+}
+
+function shuffle_list(given_list) {
+    for(let i = 0; i < given_list.length - 1; i++) {
+        let j = random_int(i, given_list.length - 1);
+        let t = given_list[i];
+        given_list[i] = given_list[j];
+        given_list[j] = t;
+    }
+}
 
 function vec3_create(data) {
     let vec = vec3.create();
@@ -707,8 +721,9 @@ function menu_item_clicked(menu_item) {
     $('#loading_gif').show();
     puzzle.name = menu_item;
     puzzle.promise().then(() => {
-        render_scene();
         $('#loading_gif').hide();
+        shuffle_list(puzzle_texture_list);
+        render_scene();
     });
 }
 
@@ -719,6 +734,16 @@ function sequence_input_key_down(event) {
         let move_sequence = puzzle_sequence_generator.generate_move_sequence(sequence_text, puzzle);
         puzzle.move_queue = puzzle.move_queue.concat(move_sequence);
     }
+}
+
+function texture_checkbox_toggled(event) {
+    let texture_checkbox = document.getElementById('puzzle_texture_toggle_check');
+    if(texture_checkbox.checked) {
+        blendFactor = 1.0;
+    } else {
+        blendFactor = 0.0;
+    }
+    render_scene();
 }
 
 function document_ready() {
@@ -756,6 +781,8 @@ function document_ready() {
             $('#loading_gif').show();
             Promise.all(promise_list).then(() => {
                 $('#loading_gif').hide();
+                
+                shuffle_list(puzzle_texture_list);
 
                 $(window).bind('resize', function() {
                     render_scene();
@@ -776,6 +803,9 @@ function document_ready() {
                 
                 let sequence_input = document.getElementById('puzzle_prompt_input');
                 sequence_input.addEventListener('keydown', sequence_input_key_down);
+                
+                let texture_checkbox = document.getElementById('puzzle_texture_toggle_check');
+                texture_checkbox.addEventListener('change', texture_checkbox_toggled);
             });
         });
         
