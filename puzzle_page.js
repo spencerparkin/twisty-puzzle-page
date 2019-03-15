@@ -4,9 +4,9 @@ var gl = undefined;
 var puzzle = undefined;
 var puzzle_sequence_generator = new PuzzleSequenceMoveGenerator();
 var puzzle_shader = undefined;
-var puzzle_texture = undefined;
+var puzzle_texture_list = [];
 var frames_per_second = 60.0;
-var blendFactor = 0.0;
+var blendFactor = 1.0;
 
 function vec3_create(data) {
     let vec = vec3.create();
@@ -38,6 +38,7 @@ class PuzzleMesh extends StaticTriangleMesh {
     constructor(mesh_data) {
         super();
         this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list);
+        this.texture_number = mesh_data.texture_number;
         this.color = vec3_create(mesh_data.color);
         this.center = vec3_create(mesh_data.center);
         this.permutation_transform = mat4.create(); // Takes the mesh from the solved state to the scrambled state.
@@ -67,6 +68,15 @@ class PuzzleMesh extends StaticTriangleMesh {
 
         let color_loc = gl.getUniformLocation(puzzle_shader.program, 'color');
         gl.uniform3fv(color_loc, this.color);
+        
+        if(this.texture_number !== undefined) {
+            let i = this.texture_number % puzzle_texture_list.length;
+            let puzzle_texture = puzzle_texture_list[i];
+            let sampler_loc = gl.getUniformLocation(puzzle_shader.program, 'texture');        
+            puzzle_texture.bind(sampler_loc);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, undefined);
+        }
         
         let highlightFactor_loc = gl.getUniformLocation(puzzle_shader.program, 'highlightFactor');
         let highlightFactor = this.highlight ? 0.5 : 0.0;
@@ -253,9 +263,6 @@ class Puzzle {
 
         let blendFactor_loc = gl.getUniformLocation(puzzle_shader.program, 'blendFactor');
         gl.uniform1f(blendFactor_loc, blendFactor);
-
-        let sampler_loc = gl.getUniformLocation(puzzle_shader.program, 'texture');
-        puzzle_texture.bind(sampler_loc);
 
         let canvas = $('#puzzle_canvas')[0];
         let transform_matrix = calc_transform_matrix(canvas);
@@ -714,29 +721,6 @@ function sequence_input_key_down(event) {
     }
 }
 
-function blend_slider_moved(event) {
-    let blend_slider = document.getElementById('puzzle_texture_blend_slider');
-    blendFactor = blend_slider.value / 100.0;
-    render_scene();
-}
-
-function puzzle_image_file_chosen(event) {
-    let puzzle_image_input = document.getElementById('puzzle_image_input');
-    let files = puzzle_image_input.files;
-    if(files.length == 1) {
-        let file_reader = new FileReader();
-        $('#loading_gif').show();
-        file_reader.onload = () => {
-            puzzle_texture.source = file_reader.result;
-            puzzle_texture.promise().then(() => {
-                $('#loading_gif').hide();
-                render_scene();
-            });
-        }
-        file_reader.readAsDataURL(files[0]);
-    }
-}
-
 function document_ready() {
     try {
         let canvas = $('#puzzle_canvas')[0];
@@ -757,14 +741,20 @@ function document_ready() {
 	    
             puzzle = new Puzzle(initial_puzzle);
             puzzle_shader = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
-            puzzle_texture = new Texture('images/face_texture.png');
+            
+            let promise_list = [
+                puzzle.promise(),
+                puzzle_shader.promise()
+            ];
+            
+            for(let i = 0; i < 19; i++) {
+                let puzzle_texture = new Texture('images/face_texture_' + i.toString() + '.jpg');
+                puzzle_texture_list.push(puzzle_texture);
+                promise_list.push(puzzle_texture.promise());
+            }
 
             $('#loading_gif').show();
-            Promise.all([
-                puzzle.promise(),
-                puzzle_shader.promise(),
-                puzzle_texture.promise()
-            ]).then(() => {
+            Promise.all(promise_list).then(() => {
                 $('#loading_gif').hide();
 
                 $(window).bind('resize', function() {
@@ -786,12 +776,6 @@ function document_ready() {
                 
                 let sequence_input = document.getElementById('puzzle_prompt_input');
                 sequence_input.addEventListener('keydown', sequence_input_key_down);
-                
-                let blend_slider = document.getElementById('puzzle_texture_blend_slider');
-                blend_slider.addEventListener('change', blend_slider_moved);
-                
-                let puzzle_image_input = document.getElementById('puzzle_image_input');
-                puzzle_image_input.addEventListener('change', puzzle_image_file_chosen);
             });
         });
         

@@ -18,6 +18,7 @@ class ColoredMesh(TriangleMesh):
         self.color = color if color is not None else Vector(0.0, 0.0, 0.0)
         self.uv_list = []
         self.normal_list = []
+        self.texture_number = -1
 
     def clone(self):
         return ColoredMesh(mesh=super().clone(), color=self.color.clone())
@@ -27,6 +28,7 @@ class ColoredMesh(TriangleMesh):
         data['color'] = self.color.to_dict()
         data['uv_list'] = [uv.to_dict() for uv in self.uv_list]
         data['normal_list'] = [normal.to_dict() for normal in self.normal_list]
+        data['texture_number'] = self.texture_number
         return data
 
     def from_dict(self, data):
@@ -34,6 +36,7 @@ class ColoredMesh(TriangleMesh):
         self.color = Vector().from_dict(data.get('color', {}))
         self.uv_list = [Vector().from_dict(uv) for uv in data.get('uv_list', [])]
         self.normal_list = [Vector().from_dict(normal) for normal in data.get('normal_list', [])]
+        self.texture_number = data.get('texture_number', -1)
         return self
     
     def render(self):
@@ -232,8 +235,10 @@ class PuzzleDefinitionBase(object):
         return puzzle_path
 
     def calculate_uvs(self, final_mesh_list, initial_mesh_list):
-        for mesh in initial_mesh_list:
+        for i, mesh in enumerate(initial_mesh_list):
             plane = PointCloud(mesh.vertex_list).fit_plane()
+            if plane.center.dot(plane.unit_normal) < 0.0:
+                plane.unit_normal = -plane.unit_normal
             x_axis = plane.unit_normal.perpendicular_vector().normalized()
             y_axis = plane.unit_normal.cross(x_axis)
             z_axis = plane.unit_normal.clone()
@@ -256,6 +261,7 @@ class PuzzleDefinitionBase(object):
             for face_mesh in final_mesh_list:
                 center = face_mesh.calc_center()
                 if plane.side(center, eps=1e-4) == Side.NEITHER:
+                    face_mesh.texture_number = i
                     face_mesh.uv_list = []
                     vertex_list = [inverse_transform(vertex) for vertex in face_mesh.vertex_list]
                     for vertex in vertex_list:
