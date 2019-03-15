@@ -258,6 +258,16 @@ class PuzzleDefinitionBase(object):
                     y_min = vertex.y
                 if vertex.y > y_max:
                     y_max = vertex.y
+            x_delta = x_max - x_min
+            y_delta = y_max - y_min
+            if x_delta > y_delta:
+                delta = (x_delta - y_delta) * 0.5
+                y_min -= delta
+                y_max += delta
+            elif x_delta < y_delta:
+                delta = (y_delta - x_delta) * 0.5
+                x_min -= delta
+                x_max += delta
             for face_mesh in final_mesh_list:
                 center = face_mesh.calc_center()
                 if plane.side(center, eps=1e-4) == Side.NEITHER:
