@@ -573,9 +573,6 @@ class Bubbloid4x4x5(PuzzleDefinitionBase):
                 return mesh
 
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
-
-        # TODO: The top and bottom get fully cut, but not the middle.
-
         if cut_pass == 0 or cut_pass == 1 or cut_pass == 2:
             self.apply_generator(mesh_list, generator_mesh_list[0])
         if cut_pass == 2 or cut_pass == 3 or cut_pass == 4:
