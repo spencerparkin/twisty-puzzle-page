@@ -8,6 +8,8 @@ var puzzle_texture_list = [];
 var frames_per_second = 60.0;
 var blendFactor = 0.0;
 
+// TODO: Use knockout for interface at bottom of page.  Add queued count, undo count, redo count, and undo/redo buttons.
+
 function random_int(min_int, max_int) {
     // This might not be perfectly uniform as it may be less likely to get min_int or max_int than anything inbetween.
     return Math.round(min_int + Math.random() * (max_int - min_int));
