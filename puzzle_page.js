@@ -567,7 +567,7 @@ function curvy_copter_special_move(event, generator) {
     viewModel.move_queue.push(new PuzzleMove(generator_a, false, angle * scale, 'history'));
     viewModel.move_queue.push(new PuzzleMove(generator_b, false, angle * scale, 'history'));
     
-    viewModel.move_queue.push(new PuzzleMove(generator, (event.deltaY > 0) ? true : false, 'history'));
+    viewModel.move_queue.push(new PuzzleMove(generator, (event.deltaY > 0) ? true : false, undefined, 'history'));
     
     viewModel.move_queue.push(new PuzzleMove(generator_a, false, -angle * scale, 'history'));
     viewModel.move_queue.push(new PuzzleMove(generator_b, false, -angle * scale, 'history'));
