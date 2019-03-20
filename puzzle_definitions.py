@@ -7,6 +7,7 @@ from math3d_triangle_mesh import TriangleMesh, Polyhedron
 from math3d_vector import Vector
 from math3d_transform import AffineTransform, LinearTransform
 from math3d_sphere import Sphere
+from math3d_cylinder import Cylinder
 from math3d_point_cloud import PointCloud
 from puzzle_generator import GeneratorMesh
 
@@ -781,7 +782,85 @@ class SkewbUltimate(PuzzleDefinitionBase):
             mesh_list.append(mesh)
         return mesh_list
 
-# TODO: Add 2x2x3 and 3x3x2 and 3x3x2 with cylindrical cut.
+class Rubiks2x3x3(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+    
+    def make_initial_mesh_list(self):
+        mesh_list = super().make_initial_mesh_list()
+        transform = LinearTransform().make_non_uniform_scale(1.0, 2.0 / 3.0, 1.0)
+        mesh_list = transform(mesh_list)
+        return mesh_list
+    
+    def make_generator_mesh_list(self):
+        l_cut_disk = TriangleMesh.make_disk(Vector(-1.0 / 3.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4)
+        r_cut_disk = TriangleMesh.make_disk(Vector(1.0 / 3.0, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4)
+        d_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4)
+        u_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4)
+        b_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, -1.0 / 3.0), Vector(0.0, 0.0, 1.0), 4.0, 4)
+        f_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 1.0 / 3.0), Vector(0.0, 0.0, -1.0), 4.0, 4)
+
+        l_cut_disk = GeneratorMesh(mesh=l_cut_disk, axis=Vector(-1.0, 0.0, 0.0), angle=math.pi, pick_point=Vector(-1.0, 0.0, 0.0))
+        r_cut_disk = GeneratorMesh(mesh=r_cut_disk, axis=Vector(1.0, 0.0, 0.0), angle=math.pi, pick_point=Vector(1.0, 0.0, 0.0))
+        d_cut_disk = GeneratorMesh(mesh=d_cut_disk, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, -2.0 / 3.0, 0.0))
+        u_cut_disk = GeneratorMesh(mesh=u_cut_disk, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 2.0 / 3.0, 0.0))
+        b_cut_disk = GeneratorMesh(mesh=b_cut_disk, axis=Vector(0.0, 0.0, -1.0), angle=math.pi, pick_point=Vector(0.0, 0.0, -1.0))
+        f_cut_disk = GeneratorMesh(mesh=f_cut_disk, axis=Vector(0.0, 0.0, 1.0), angle=math.pi, pick_point=Vector(0.0, 0.0, 1.0))
+
+        return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
+
+class Rubiks2x2x3(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+    
+    def make_initial_mesh_list(self):
+        mesh_list = super().make_initial_mesh_list()
+        transform = LinearTransform().make_non_uniform_scale(2.0 / 3.0, 1.0, 2.0 / 3.0)
+        mesh_list = transform(mesh_list)
+        return mesh_list
+
+    def make_generator_mesh_list(self):
+        l_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4)
+        r_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4)
+        d_cut_disk = TriangleMesh.make_disk(Vector(0.0, -1.0 / 3.0, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4)
+        u_cut_disk = TriangleMesh.make_disk(Vector(0.0, 1.0 / 3.0, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4)
+        b_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 4.0, 4)
+        f_cut_disk = TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), Vector(0.0, 0.0, -1.0), 4.0, 4)
+
+        l_cut_disk = GeneratorMesh(mesh=l_cut_disk, axis=Vector(-1.0, 0.0, 0.0), angle=math.pi, pick_point=Vector(-2.0 / 3.0, 0.0, 0.0))
+        r_cut_disk = GeneratorMesh(mesh=r_cut_disk, axis=Vector(1.0, 0.0, 0.0), angle=math.pi, pick_point=Vector(2.0 / 3.0, 0.0, 0.0))
+        d_cut_disk = GeneratorMesh(mesh=d_cut_disk, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, -1.0, 0.0))
+        u_cut_disk = GeneratorMesh(mesh=u_cut_disk, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 1.0, 0.0))
+        b_cut_disk = GeneratorMesh(mesh=b_cut_disk, axis=Vector(0.0, 0.0, -1.0), angle=math.pi, pick_point=Vector(0.0, 0.0, -2.0 / 3.0))
+        f_cut_disk = GeneratorMesh(mesh=f_cut_disk, axis=Vector(0.0, 0.0, 1.0), angle=math.pi, pick_point=Vector(0.0, 0.0, 2.0 / 3.0))
+
+        return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
+
+class Crazy2x3x3(Rubiks2x3x3):
+    # Note that this is not giving us the actual Crazy 2x3x3, because we're not replicating the exact
+    # mechanical properties of that puzzle.  We are cutting the puzzle correctly here, however.
+    # Also note that, like the Helicopter cube, this puzzle has a special kind of move that would
+    # need to be supported as a special case in the web-app.
+    
+    def __init__(self):
+        super().__init__()
+    
+    def make_generator_mesh_list(self):
+        
+        mesh_list = super().make_generator_mesh_list()
+        
+        cylinder = Cylinder(Vector(0.0, -3.0, 0.0), Vector(0.0, 3.0, 0.0), 0.7).make_mesh(subdivision_level=2)
+        mesh_list.append(GeneratorMesh(mesh=cylinder, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 1.5, 0.0)))
+        mesh_list.append(GeneratorMesh(mesh=cylinder, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, -1.5, 0.0)))
+        
+        # TODO: To make this work, first give the cylinders a pick-point of None so that they're not usable.
+        #       Second, add the ability to make one generator mesh additive or subtractive of a generator that the user is trying to use.
+        #       So in our case, the up-face would capture faces, then the cylinder would subtract captured faces.
+        #       Similarly, the down-face would capture faces, then the cylinder would add captured faces.
+        #       I still don't know how to do the special move, though, because the required capture seems non-trivial.
+        
+        return mesh_list
+
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
 # TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.
