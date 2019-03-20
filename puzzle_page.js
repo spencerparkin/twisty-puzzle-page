@@ -9,6 +9,8 @@ var frames_per_second = 60.0;
 var blendFactor = 0.0;
 var viewModel = undefined;
 
+// TODO: Add save/load buttons.
+
 var ViewModel = function() {
     this.sequence_text = ko.observable('');
     this.apply_textures = ko.observable(false);
