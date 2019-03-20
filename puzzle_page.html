@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>Twisty Puzzle Page</title>
         <script src="https://code.jquery.com/jquery.js"></script>
+        <script type='text/javascript' src='scripts/knockout-3.5.0.js'></script>
         <script src="scripts/gl-matrix.js"></script>
         <script src="scripts/gl-helpers.js"></script>
         <script src="puzzle_sequence.js"></script>
@@ -17,8 +18,16 @@
         </span>
         <span id="puzzle_menu_label">Hello</span>
         <div id="puzzle_controls">
-            <p><label for="puzzle_prompt_input">Sequence:</label><input id="puzzle_prompt_input" type="text" spellcheck="false"></p>
-            <p><label for="puzzle_texture_toggle_check">Texture:</label><input id="puzzle_texture_toggle_check" type="checkbox"></p>
+            <p>
+                Sequence: <input data-bind="value: sequence_text" id="puzzle_sequence_textbox"/>
+                <button data-bind="click: executeSequenceClicked">Execute</button>
+                Textures: <input type="checkbox" data-bind="checked: apply_textures">
+                Queued Moves: <span data-bind="text: move_queue().length"></span>
+                Undo Moves: <span data-bind="text: undo_move_list().length"></span>
+                Redo Moves: <span data-bind="text: redo_move_list().length"></span>
+                <button data-bind="click: undoClicked, enable: undo_move_list().length > 0">Undo</button>
+                <button data-bind="click: redoClicked, enable: redo_move_list().length > 0">Redo</button>
+            </p>
         </div>
     </body>
 </html>

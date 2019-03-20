@@ -7,8 +7,74 @@ var puzzle_shader = undefined;
 var puzzle_texture_list = [];
 var frames_per_second = 60.0;
 var blendFactor = 0.0;
+var viewModel = undefined;
 
-// TODO: Use knockout for interface at bottom of page.  Add queued count, undo count, redo count, and undo/redo buttons.
+var ViewModel = function() {
+    this.sequence_text = ko.observable('');
+    this.apply_textures = ko.observable(false);
+    this.move_queue = ko.observableArray([]);
+    this.undo_move_list = ko.observableArray([]);
+    this.redo_move_list = ko.observableArray([]);
+    
+    this.executeSequenceClicked = function() {
+        let move_sequence = puzzle_sequence_generator.generate_move_sequence(this.sequence_text(), puzzle);
+        for(let i = 0; i < move_sequence.length; i++)
+            this.move_queue.push(move_sequence[i].clone());
+        this.clear_redo_list();
+    }
+    
+    this.undoClicked = function() {
+        let move = this.undo_move_list.pop();
+        move.invert();
+        move.for_what = 'future';
+        this.move_queue.push(move);
+    }
+    
+    this.redoClicked = function() {
+        let move = this.redo_move_list.shift();
+        move.invert();
+        move.for_what = 'history';
+        this.move_queue.push(move);
+    }
+    
+    this.process_move_queue = function() {
+        if(this.move_queue().length > 0) {
+            
+            let move = this.move_queue.shift();
+            move.apply();
+            
+            if(move.for_what == 'history')
+                this.undo_move_list.push(move);
+            else if(move.for_what == 'future')
+                this.redo_move_list.unshift(move);
+                
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    this.clear_redo_list = function() {
+        while(this.redo_move_list().length > 0)
+            this.redo_move_list.pop();
+    }
+    
+    this.clear_undo_list = function() {
+        while(this.undo_move_list().length > 0)
+            this.undo_move_list.pop();
+    }
+    
+    this.clear_move_queue = function() {
+        while(this.move_queue().length > 0)
+            this.move_queue.pop();
+    }
+    
+    this.clear_all = function() {
+        this.clear_redo_list();
+        this.clear_undo_list();
+        this.clear_move_queue();
+    }
+}
 
 function random_int(min_int, max_int) {
     // This might not be perfectly uniform as it may be less likely to get min_int or max_int than anything inbetween.
@@ -181,10 +247,11 @@ class PuzzleGenerator {
 }
 
 class PuzzleMove {
-    constructor(generator, inverse, override_angle=undefined) {
+    constructor(generator, inverse, override_angle=undefined, for_what=undefined) {
         this.generator = generator;
         this.inverse = inverse;
         this.override_angle = override_angle;
+        this.for_what = for_what;
     }
 
     apply() {
@@ -207,8 +274,12 @@ class PuzzleMove {
         });
     }
     
+    invert() {
+        this.inverse = !this.inverse;
+    }
+    
     clone() {
-        return new PuzzleMove(this.generator, this.inverse, this.override_angle);
+        return new PuzzleMove(this.generator, this.inverse, this.override_angle, this.for_what);
     }
 }
 
@@ -219,7 +290,6 @@ class Puzzle {
         this.generator_list = [];
         this.orient_matrix = mat4.create();
         this.selected_generator = -1;
-        this.move_queue = [];
         this.bandages = false;
     }
     
@@ -235,8 +305,6 @@ class Puzzle {
             mesh.release();
         }
         this.mesh_list = [];
-
-        this.move_queue = [];
     }
     
     promise() {
@@ -303,7 +371,7 @@ class Puzzle {
             return (Math.abs(dot_a - 1.0) < Math.abs(dot_b - 1.0)) ? gen_a : gen_b;
         });
         
-        return new PuzzleMove(generator, false);
+        return new PuzzleMove(generator, false, undefined, 'history');
     }
 
     pick_generator(projected_mouse_point) {
@@ -397,13 +465,8 @@ class Puzzle {
                 mesh.advance_animation();
             });
             return true;
-        } else if(this.move_queue.length > 0) {
-            let move = this.move_queue.shift();
-            move.apply();
-            // TODO: If flagged for history, the move should be put on a history list for undo/redo purposes.
-            return true;
         } else {
-            return false;
+            return viewModel.process_move_queue(); 
         }
     }
     
@@ -420,7 +483,7 @@ class Puzzle {
             k = j;
             let generator = this.generator_list[j];
             let inverse = Math.random() > 0.5 ? true : false;
-            this.move_queue.push(new PuzzleMove(generator, inverse));
+            viewModel.move_queue.push(new PuzzleMove(generator, inverse, undefined, undefined));
         }
     }
 }
@@ -445,13 +508,15 @@ function canvas_mouse_wheel_move(event) {
             let move = undefined;
     
             if(event.deltaY < 0) {
-                move = new PuzzleMove(generator, false);
+                move = new PuzzleMove(generator, false, undefined, 'history');
             } else if(event.deltaY > 0) {
-                move = new PuzzleMove(generator, true);
+                move = new PuzzleMove(generator, true, undefined, 'history');
             }
     
-            if(move)
-                puzzle.move_queue.push(move);
+            if(move) {
+                viewModel.move_queue.push(move);
+                viewModel.clear_redo_list();
+            }
         }
     }
 }
@@ -499,13 +564,13 @@ function curvy_copter_special_move(event, generator) {
     let generator_a = puzzle.generator_list[special_move.generator_mesh_a];
     let generator_b = puzzle.generator_list[special_move.generator_mesh_b];
     
-    puzzle.move_queue.push(new PuzzleMove(generator_a, false, angle * scale));
-    puzzle.move_queue.push(new PuzzleMove(generator_b, false, angle * scale));
+    viewModel.move_queue.push(new PuzzleMove(generator_a, false, angle * scale, 'history'));
+    viewModel.move_queue.push(new PuzzleMove(generator_b, false, angle * scale, 'history'));
     
-    puzzle.move_queue.push(new PuzzleMove(generator, (event.deltaY > 0) ? true : false));
+    viewModel.move_queue.push(new PuzzleMove(generator, (event.deltaY > 0) ? true : false, 'history'));
     
-    puzzle.move_queue.push(new PuzzleMove(generator_a, false, -angle * scale));
-    puzzle.move_queue.push(new PuzzleMove(generator_b, false, -angle * scale));
+    viewModel.move_queue.push(new PuzzleMove(generator_a, false, -angle * scale, 'history'));
+    viewModel.move_queue.push(new PuzzleMove(generator_b, false, -angle * scale, 'history'));
 }
 
 var dragging = false;
@@ -725,27 +790,9 @@ function menu_item_clicked(menu_item) {
     puzzle.promise().then(() => {
         $('#loading_gif').hide();
         shuffle_list(puzzle_texture_list);
+        viewModel.clear_all();
         render_scene();
     });
-}
-
-function sequence_input_key_down(event) {
-    if(event.key === 'Enter') {
-        let sequence_input = document.getElementById('puzzle_prompt_input');
-        let sequence_text = sequence_input.value;
-        let move_sequence = puzzle_sequence_generator.generate_move_sequence(sequence_text, puzzle);
-        puzzle.move_queue = puzzle.move_queue.concat(move_sequence);
-    }
-}
-
-function texture_checkbox_toggled(event) {
-    let texture_checkbox = document.getElementById('puzzle_texture_toggle_check');
-    if(texture_checkbox.checked) {
-        blendFactor = 1.0;
-    } else {
-        blendFactor = 0.0;
-    }
-    render_scene();
 }
 
 function document_ready() {
@@ -803,11 +850,13 @@ function document_ready() {
     
                 setInterval(puzzle_animate_callback, 10);
                 
-                let sequence_input = document.getElementById('puzzle_prompt_input');
-                sequence_input.addEventListener('keydown', sequence_input_key_down);
+                viewModel = new ViewModel();
+                ko.applyBindings(viewModel);
                 
-                let texture_checkbox = document.getElementById('puzzle_texture_toggle_check');
-                texture_checkbox.addEventListener('change', texture_checkbox_toggled);
+                viewModel.apply_textures.subscribe(function(newValue) {
+                    blendFactor = newValue ? 1.0 : 0.0;
+                    render_scene();
+                });
             });
         });
         

@@ -50,15 +50,15 @@ body {
 #puzzle_controls {
     z-index: 1;
     position: absolute;
-    top: 90%;
-    height: 10%;
-    left: 20%;
-    width: 60%;
+    top: 85%;
+    height: 15%;
+    left: 0%;
+    width: 100%;
     /*white-space: nowrap;*/
     color: white;
 }
 
-#puzzle_prompt_input {
+#puzzle_sequence_textbox {
     text-align: left;
     padding: 2px 2px;
     border: 1px solid #ccc;
@@ -71,23 +71,4 @@ body {
     position: relative;
     width: auto;
     height: 100%;
-}
-
-.slider {
-    -webkit-appearance: none;
-    appearance: none;
-    height: 20px;
-    width: 200px;
-    outline: none;
-    border-radius: 10px;
-}
-
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 10px;
-    background: #ff0000;
-    cursor: pointer;
 }
