@@ -50,12 +50,15 @@ body {
 #puzzle_controls {
     z-index: 1;
     position: absolute;
-    top: 85%;
+    top: calc(100% - 180px);
     height: 15%;
     left: 0%;
     width: 100%;
     /*white-space: nowrap;*/
     color: white;
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    grid-gap: 8px;
 }
 
 #puzzle_sequence_textbox {
@@ -71,4 +74,13 @@ body {
     position: relative;
     width: auto;
     height: 100%;
+}
+
+.first_column {
+    grid-column: 1 / 2;
+    text-align: right;
+}
+
+.second_column {
+    grid-column: 2 / 3;
 }
