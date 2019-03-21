@@ -50,7 +50,7 @@ body {
 #puzzle_controls {
     z-index: 1;
     position: absolute;
-    top: calc(100% - 180px);
+    top: calc(100% - 200px);
     height: 15%;
     left: 0%;
     width: 30%;

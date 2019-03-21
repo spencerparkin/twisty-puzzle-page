@@ -18,6 +18,7 @@ var viewModel = undefined;
 var ViewModel = function() {
     this.sequence_text = ko.observable('');
     this.apply_textures = ko.observable(false);
+    this.show_reflection = ko.observable(false);
     this.move_queue = ko.observableArray([]);
     this.undo_move_list = ko.observableArray([]);
     this.redo_move_list = ko.observableArray([]);
@@ -391,14 +392,14 @@ class Puzzle {
         });
     }
     
-    render() {
+    render(reflect) {
         gl.useProgram(puzzle_shader.program);
 
         let blendFactor_loc = gl.getUniformLocation(puzzle_shader.program, 'blendFactor');
         gl.uniform1f(blendFactor_loc, blendFactor);
 
         let canvas = $('#puzzle_canvas')[0];
-        let transform_matrix = calc_transform_matrix(canvas);
+        let transform_matrix = calc_transform_matrix(canvas, reflect);
         let transform_matrix_loc = gl.getUniformLocation(puzzle_shader.program, 'transform_matrix');
         gl.uniformMatrix4fv(transform_matrix_loc, false, transform_matrix);
 
@@ -708,7 +709,7 @@ function canvas_mouse_double_click(event) {
     }
 }
 
-function calc_transform_matrix(canvas) {
+function calc_transform_matrix(canvas, reflect=false) {
     let aspect_ratio = canvas.width / canvas.height;
 
     let proj_matrix = mat4.create();
@@ -726,8 +727,14 @@ function calc_transform_matrix(canvas) {
     let view_matrix = mat4.create();
     mat4.lookAt(view_matrix, eye, center, up);
 
+    let reflection_matrix = mat4.create();
+    if(reflect) {
+        reflection_matrix[10] = -1.0;
+    }
+
     let transform_matrix = mat4.create();
-    mat4.multiply(transform_matrix, view_matrix, puzzle.orient_matrix);
+    mat4.multiply(transform_matrix, reflection_matrix, puzzle.orient_matrix);
+    mat4.multiply(transform_matrix, view_matrix, transform_matrix);
     mat4.multiply(transform_matrix, proj_matrix, transform_matrix);
 
     return transform_matrix;
@@ -741,7 +748,14 @@ function render_scene() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
-    puzzle.render();
+    gl.cullFace(gl.BACK);
+    puzzle.render(false);
+    
+    if(viewModel.show_reflection()) {
+        gl.viewport(3 * canvas.width / 4, 0, canvas.width / 4, canvas.height / 4);
+        gl.cullFace(gl.FRONT);
+        puzzle.render(true);
+    }
 }
 
 function promise_puzzle_menu() {
@@ -891,7 +905,6 @@ function document_ready() {
 	    gl.enable(gl.BLEND);
 	    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	    gl.enable(gl.CULL_FACE);
-	    gl.cullFace(gl.BACK);
 	    
 	    promise_puzzle_menu().then(initial_puzzle => {
 	    
@@ -928,8 +941,6 @@ function document_ready() {
                 canvas.addEventListener('mouseup', canvas_mouse_up);
                 canvas.addEventListener('dblclick', canvas_mouse_double_click);
     
-                render_scene();
-    
                 setInterval(puzzle_animate_callback, 10);
                 
                 viewModel = new ViewModel();
@@ -939,6 +950,12 @@ function document_ready() {
                     blendFactor = newValue ? 1.0 : 0.0;
                     render_scene();
                 });
+                
+                viewModel.show_reflection.subscribe(function(newValue) {
+                    render_scene();
+                });
+                
+                render_scene();
             });
         });
         
