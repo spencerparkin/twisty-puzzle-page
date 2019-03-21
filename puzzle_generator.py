@@ -77,7 +77,8 @@ class GeneratorMesh(TriangleMesh):
         self.center = center if center is not None else Vector(0.0, 0.0, 0.0)
         self.axis = axis if axis is not None else Vector(0.0, 0.0, 1.0)
         self.angle = angle if angle is not None else 0.0
-        self.pick_point = Vector(0.0, 0.0, 0.0) if pick_point is None else pick_point
+        self.pick_point = pick_point
+        self.capture_tree_root = None
 
     def clone(self):
         return GeneratorMesh(mesh=super().clone(), axis=self.axis.clone(), angle=self.angle, pick_point=self.pick_point.clone())
@@ -87,7 +88,8 @@ class GeneratorMesh(TriangleMesh):
         data['center'] = self.center.to_dict()
         data['axis'] = self.axis.to_dict()
         data['angle'] = self.angle
-        data['pick_point'] = self.pick_point.to_dict()
+        data['pick_point'] = self.pick_point.to_dict() if self.pick_point is not None else None
+        data['capture_tree_root'] = self.capture_tree_root
         return data
     
     def from_dict(self, data):
@@ -95,7 +97,8 @@ class GeneratorMesh(TriangleMesh):
         self.center = Vector().from_dict(data.get('center', {}))
         self.axis = Vector().from_dict(data.get('axis', {}))
         self.angle = data.get('angle', 0.0)
-        self.pick_point = Vector().from_dict(data.get('pick_point', {}))
+        self.pick_point = Vector().from_dict(data.get('pick_point')) if data.get('pick_point') is not None else None
+        self.capture_tree_root = data.get('capture_tree_root')
         return self
 
     def make_plane_list(self):

@@ -11,6 +11,9 @@ var viewModel = undefined;
 
 // TODO: Add save/load buttons.
 
+// Note that knockout's dependency graph requires computed members to
+// call one or more observable functions.  This is how knockout builds
+// its dependency graph.
 var ViewModel = function() {
     this.sequence_text = ko.observable('');
     this.apply_textures = ko.observable(false);
@@ -90,6 +93,48 @@ function shuffle_list(given_list) {
         given_list[i] = given_list[j];
         given_list[j] = t;
     }
+}
+
+function union_sets(set_list) {
+    let result_set = new Set();
+    for(let i = 0; i < set_list.length; i++) {
+        let set = set_list[i];
+        set.forEach(element => {
+            if(!result_set.has(element))
+                result_set.add(element);
+        });
+    }
+    return result_set;
+}
+
+function intersect_sets(set_list) {
+    let result_set = new Set();
+    if(set_list.length > 0) {
+        let set = set_list[0];
+        set.forEach(element => {
+            for(var i = 1; i < set_list.length; i++)
+                if(!set_list[i].has(element))
+                    break;
+            if(i === set_list.length)
+                result_set.add(element);
+        });
+    }
+    return result_set;
+}
+
+function subtract_sets(set_list) {
+    let result_set = new Set();
+    if(set_list.length > 0) {
+        let set = set_list[0];
+        set.forEach(element => {
+            for(var i = 1; i < set_list.length; i++)
+                if(set_list[i].has(element))
+                    break;
+            if(i === set_list.length)
+                result_set.add(element);
+        });
+    }
+    return result_set;
 }
 
 function vec3_create(data) {
@@ -218,6 +263,7 @@ class PuzzleMesh extends StaticTriangleMesh {
 class PuzzleGenerator {
     constructor(generator_data) {
         this.pick_point = vec3_create(generator_data.pick_point);
+        this.capture_tree_root = generator_data.capture_tree_root;
         this.center = vec3_create(generator_data.center);
         this.axis = vec3_create(generator_data.axis);
         this.angle = generator_data.angle;
@@ -384,16 +430,17 @@ class Puzzle {
         let j = -1;
         for(let i = 0; i < this.generator_list.length; i++) {
             let generator = this.generator_list[i];
-
-            let projected_center = vec3.create();
-            vec3.transformMat4(projected_center, generator.pick_point, transform_matrix);
-
-            projected_center[2] = 0.0;
-
-            let distance = vec3.distance(projected_center, projected_mouse_point);
-            if(distance < min_distance) {
-                min_distance = distance;
-                j = i;
+            if(generator.pick_point) {
+                let projected_center = vec3.create();
+                vec3.transformMat4(projected_center, generator.pick_point, transform_matrix);
+    
+                projected_center[2] = 0.0;
+    
+                let distance = vec3.distance(projected_center, projected_mouse_point);
+                if(distance < min_distance) {
+                    min_distance = distance;
+                    j = i;
+                }
             }
         }
 
@@ -421,12 +468,43 @@ class Puzzle {
     }
 
     for_captured_meshes(generator, func) {
+        if(generator.capture_tree_root) {
+            let captured_mesh_set = this.execute_capture_tree(generator.capture_tree_root);
+            captured_mesh_set.forEach(func);
+        } else {
+            this._for_captured_meshes_internal(generator, func);
+        }
+    }
+    
+    _for_captured_meshes_internal(generator, func) {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.is_captured_by_generator(generator)) {
                 func(mesh);
             }
         }
+    }
+
+    execute_capture_tree(capture_tree_node) {
+        let captured_mesh_set = new Set();
+        if(capture_tree_node.op) {
+            let child_captured_mesh_set_list = [];
+            for(let i = 0; i < capture_tree_node.children.length; i++)
+                child_captured_mesh_set_list.push(this.execute_capture_tree(capture_tree_node.children[i]));
+            if(capture_tree_node.op === 'union') {
+                captured_mesh_set = union_sets(child_captured_mesh_set_list);
+            } else if(capture_tree_node.op === 'intersection') {
+                captured_mesh_set = intersect_sets(child_captured_mesh_set_list);
+            } else if(capture_tree_node.op === 'subtract') {
+                captured_mesh_set = subtract_sets(child_captured_mesh_set_list);
+            }
+        } else if(capture_tree_node.mesh) {
+            let generator = this.generator_list[capture_tree_node.mesh];
+            this._for_captured_meshes_internal(generator, mesh => {
+                captured_mesh_set.add(mesh);
+            });
+        }
+        return captured_mesh_set;
     }
 
     get_selected_generator() {
@@ -448,6 +526,7 @@ class Puzzle {
         // This might not actually be accurate, because there may be
         // more than one solved state of the puzzle, each indistinguishable
         // from the other.  All solved states would form the kernel of a homomorphism.
+        // Also, consider the same rotation applied to all parts of the puzzle.
         let unsolved_mesh = this.mesh_list.find(mesh => {
             return !mesh.is_solved();
         });

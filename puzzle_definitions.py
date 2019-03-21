@@ -836,12 +836,7 @@ class Rubiks2x2x3(PuzzleDefinitionBase):
 
         return [l_cut_disk, r_cut_disk, d_cut_disk, u_cut_disk, b_cut_disk, f_cut_disk]
 
-class Crazy2x3x3(Rubiks2x3x3):
-    # Note that this is not giving us the actual Crazy 2x3x3, because we're not replicating the exact
-    # mechanical properties of that puzzle.  We are cutting the puzzle correctly here, however.
-    # Also note that, like the Helicopter cube, this puzzle has a special kind of move that would
-    # need to be supported as a special case in the web-app.
-    
+class Crazy2x3x3(Rubiks2x3x3):  # TODO: What about the special move this puzzle has?
     def __init__(self):
         super().__init__()
     
@@ -850,15 +845,27 @@ class Crazy2x3x3(Rubiks2x3x3):
         mesh_list = super().make_generator_mesh_list()
         
         cylinder = Cylinder(Vector(0.0, -3.0, 0.0), Vector(0.0, 3.0, 0.0), 0.7).make_mesh(subdivision_level=2)
-        mesh_list.append(GeneratorMesh(mesh=cylinder, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 1.5, 0.0)))
-        mesh_list.append(GeneratorMesh(mesh=cylinder, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, -1.5, 0.0)))
+        mesh_list.append(GeneratorMesh(mesh=cylinder, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 2.0, pick_point=None))
+        mesh_list.append(GeneratorMesh(mesh=cylinder, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 2.0, pick_point=None))
         
-        # TODO: To make this work, first give the cylinders a pick-point of None so that they're not usable.
-        #       Second, add the ability to make one generator mesh additive or subtractive of a generator that the user is trying to use.
-        #       So in our case, the up-face would capture faces, then the cylinder would subtract captured faces.
-        #       Similarly, the down-face would capture faces, then the cylinder would add captured faces.
-        #       I still don't know how to do the special move, though, because the required capture seems non-trivial.
-        
+        u_cut_disk = mesh_list[3]
+        u_cut_disk.capture_tree_root = {
+            'op': 'subtract',
+            'children': [
+                {'mesh': 3},
+                {'mesh': 6},
+            ]
+        }
+
+        d_cut_disk = mesh_list[2]
+        d_cut_disk.capture_tree_root = {
+            'op': 'union',
+            'children': [
+                {'mesh': 2},
+                {'mesh': 6}
+            ]
+        }
+
         return mesh_list
 
 class Gem8(PuzzleDefinitionBase):

@@ -8,6 +8,7 @@
                 "y": 0.0,
                 "z": 0.0
             },
+            "capture_tree_root": null,
             "center": {
                 "x": 0.0,
                 "y": 0.0,
@@ -125,6 +126,7 @@
                 "y": 0.0,
                 "z": 0.0
             },
+            "capture_tree_root": null,
             "center": {
                 "x": 0.0,
                 "y": 0.0,
@@ -241,6 +243,17 @@
                 "x": 0.0,
                 "y": -1.0,
                 "z": 0.0
+            },
+            "capture_tree_root": {
+                "children": [
+                    {
+                        "mesh": 2
+                    },
+                    {
+                        "mesh": 6
+                    }
+                ],
+                "op": "union"
             },
             "center": {
                 "x": 0.0,
@@ -359,6 +372,17 @@
                 "y": 1.0,
                 "z": 0.0
             },
+            "capture_tree_root": {
+                "children": [
+                    {
+                        "mesh": 3
+                    },
+                    {
+                        "mesh": 6
+                    }
+                ],
+                "op": "subtract"
+            },
             "center": {
                 "x": 0.0,
                 "y": 0.0,
@@ -476,6 +500,7 @@
                 "y": 0.0,
                 "z": -1.0
             },
+            "capture_tree_root": null,
             "center": {
                 "x": 0.0,
                 "y": 0.0,
@@ -593,6 +618,7 @@
                 "y": 0.0,
                 "z": 1.0
             },
+            "capture_tree_root": null,
             "center": {
                 "x": 0.0,
                 "y": 0.0,
@@ -710,16 +736,13 @@
                 "y": 1.0,
                 "z": 0.0
             },
+            "capture_tree_root": null,
             "center": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0
             },
-            "pick_point": {
-                "x": 0.0,
-                "y": 1.5,
-                "z": 0.0
-            },
+            "pick_point": null,
             "plane_list": [
                 {
                     "center": {
@@ -1602,16 +1625,13 @@
                 "y": -1.0,
                 "z": 0.0
             },
+            "capture_tree_root": null,
             "center": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0
             },
-            "pick_point": {
-                "x": 0.0,
-                "y": -1.5,
-                "z": 0.0
-            },
+            "pick_point": null,
             "plane_list": [
                 {
                     "center": {
