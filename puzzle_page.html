@@ -30,8 +30,8 @@
             <span class="first_column">Redo Moves:</span>
             <span class="second_column"><span data-bind="text: redo_move_list().length"></span></span>
             
-            <span class="first_column"><button data-bind="click: undoClicked, enable: undo_move_list().length > 0">Undo</button></span>
-            <span class="second_column"><button data-bind="click: redoClicked, enable: redo_move_list().length > 0">Redo</button></span>
+            <span class="first_column">History:</span>
+            <span class="second_column"><button data-bind="click: undoClicked, enable: undo_move_list().length > 0">Undo</button><button data-bind="click: redoClicked, enable: redo_move_list().length > 0">Redo</button></span>
             
             <span class="first_column">Sequence:</span>
             <span class="second_column"><input data-bind="value: sequence_text" id="puzzle_sequence_textbox"/><button data-bind="click: executeSequenceClicked">Execute</button></span>

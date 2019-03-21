@@ -53,7 +53,7 @@ body {
     top: calc(100% - 180px);
     height: 15%;
     left: 0%;
-    width: 100%;
+    width: 30%;
     /*white-space: nowrap;*/
     color: white;
     display: grid;
@@ -66,7 +66,7 @@ body {
     padding: 2px 2px;
     border: 1px solid #ccc;
     border-radius: 2px;
-    width: 80%;
+    width: 150px;
     font-family: monospace;
 }
 
