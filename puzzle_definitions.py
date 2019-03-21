@@ -861,6 +861,20 @@ class Crazy2x3x3(Rubiks2x3x3):
         
         return mesh_list
 
+class Gem8(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_initial_mesh_list(self):
+        mesh = TriangleMesh().make_polyhedron(Polyhedron.TRUNCATED_TETRAHEDRON)
+        transform = LinearTransform().make_uniform_scale(0.5)
+        mesh = transform(mesh)
+        face_mesh_list, self.plane_list = self.make_face_meshes(mesh)
+        return face_mesh_list
+
+    def make_generator_mesh_list(self):
+        return []
+
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
 # TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.

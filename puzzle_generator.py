@@ -353,7 +353,7 @@ def main():
     from puzzle_definitions import SquareOne, Bagua, PentacleCube, MixupCube
     from puzzle_definitions import Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4
     from puzzle_definitions import Pyraminx, BauhiniaDodecahedron, SkewbUltimate
-    from puzzle_definitions import Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3
+    from puzzle_definitions import Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8
 
     puzzle_class_list = [
         RubiksCube, FisherCube, FusedCube, CurvyCopter,
@@ -362,7 +362,7 @@ def main():
         SquareOne, Bagua, PentacleCube, MixupCube,
         Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4,
         Pyraminx, BauhiniaDodecahedron, SkewbUltimate,
-        Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3
+        Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8
     ]
 
     arg_parser = argparse.ArgumentParser()
