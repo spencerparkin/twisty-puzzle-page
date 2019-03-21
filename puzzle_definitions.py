@@ -915,3 +915,4 @@ class Gem8(PuzzleDefinitionBase):
 # TODO: How would we do the Worm Hole II?  The capture tree mechanism may be sufficient to get this done.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add Gem series?
+# TODO: Add CubesOndisk puzzle.  See "https://www.youtube.com/watch?v=waoDAff9rug".  Great idea!
