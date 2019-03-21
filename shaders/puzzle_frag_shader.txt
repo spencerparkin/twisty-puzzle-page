@@ -13,7 +13,7 @@ void main()
 {
     vec4 texelColor = texture2D(texture, fragUVs);
     vec4 color = (1.0 - blendFactor) * vec4(color, 1.0) + blendFactor * texelColor;
-    vec4 highlightColor = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 highlightColor = vec4(0.5, 0.5, 0.5, 1.0);
 
     gl_FragColor = (1.0 - highlightFactor) * color + highlightFactor * highlightColor;
 }
