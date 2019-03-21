@@ -876,14 +876,42 @@ class Gem8(PuzzleDefinitionBase):
         mesh = TriangleMesh().make_polyhedron(Polyhedron.TRUNCATED_TETRAHEDRON)
         transform = LinearTransform().make_uniform_scale(0.5)
         mesh = transform(mesh)
-        face_mesh_list, self.plane_list = self.make_face_meshes(mesh)
-        return face_mesh_list
+        self.face_mesh_list, self.plane_list = self.make_face_meshes(mesh)
+        return self.face_mesh_list
 
     def make_generator_mesh_list(self):
-        return []
+        triangle_list = []
+        for face_mesh in self.face_mesh_list:
+            if len(face_mesh.triangle_list) == 1:
+                triangle_list.append(face_mesh.make_triangle(0))
+        
+        mesh_list = []
+        for plane in self.plane_list:
+            center = Vector(0.0, 0.0, 0.0)
+            for triangle in triangle_list:
+                count = sum([1 if plane.contains_point(triangle[i]) else 0 for i in range(3)])
+                if count == 2:
+                    for line_segment in triangle.yield_line_segments():
+                        point = line_segment.lerp(0.5)
+                        if not plane.contains_point(point):
+                            center += point
+            if center.length() > 0.0:
+                center /= 6.0
+                mesh = TriangleMesh.make_disk(center, -plane.unit_normal, 4.0, 4)
+                mesh = GeneratorMesh(mesh=mesh, axis=plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=center)
+                mesh_list.append(mesh)
+        
+        for triangle in triangle_list:
+            plane = triangle.calc_plane()
+            center = 5.0 * plane.center / 8.0   # This isn't exact, but close enough; we get a puzzle isomorphic to the correct puzzle.
+            mesh = TriangleMesh.make_disk(center, -plane.unit_normal, 4.0, 4)
+            mesh = GeneratorMesh(mesh=mesh, axis=plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=plane.center)
+            mesh_list.append(mesh)
+        
+        return mesh_list
 
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
-# TODO: How would we do the Worm Hole II?  Perhaps some generators would have to be dependencies of others.
+# TODO: How would we do the Worm Hole II?  The capture tree mechanism may be sufficient to get this done.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add Gem series?

@@ -10,6 +10,7 @@ var blendFactor = 0.0;
 var viewModel = undefined;
 
 // TODO: Add save/load buttons.
+// TODO: Add lighting checkbox.
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds
