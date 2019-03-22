@@ -914,13 +914,14 @@ class CubesOnDisk(PuzzleDefinitionBase):
     def __init__(self):
         super().__init__()
         self.transform_list = []
+        self.overall_scale = 0.5
     
     def make_initial_mesh_list(self):
-        # TODO: Scale this whole puzzle down.
         
         mesh = TriangleMesh().make_polyhedron(Polyhedron.HEXAHEDRON)
+        mesh = LinearTransform().make_uniform_scale(self.overall_scale)(mesh)
         
-        translation = AffineTransform().make_translation(Vector(2.0, 0.0, 0.0))
+        translation = AffineTransform().make_translation(Vector(2.0 * self.overall_scale, 0.0, 0.0))
         
         rotation = AffineTransform().make_rotation(Vector(0.0, 1.0, 0.0), 2.0 * math.pi * (0.0 / 3.0))
         self.transform_list.append(rotation(translation))
@@ -943,15 +944,16 @@ class CubesOnDisk(PuzzleDefinitionBase):
     def make_generator_mesh_list(self):
         mesh_list = []
         
-        mesh = TriangleMesh.make_disk(Vector(0.0, 1.0 / 3.0, 0.0), Vector(0.0, -1.0, 0.0), 10.0, 6)
-        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 1.0, 0.0), angle=2.0 * math.pi / 3.0, pick_point=Vector(0.0, 1.0, 0.0))
+        mesh = TriangleMesh.make_disk(Vector(0.0, self.overall_scale / 3.0, 0.0), Vector(0.0, -1.0, 0.0), 10.0, 6)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 1.0, 0.0), angle=2.0 * math.pi / 3.0, pick_point=Vector(0.0, self.overall_scale, 0.0))
         mesh_list.append(mesh)
 
-        mesh = TriangleMesh.make_disk(Vector(0.0, -1.0 / 3.0, 0.0), Vector(0.0, 1.0, 0.0), 10.0, 6)
-        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, -1.0, 0.0), angle=2.0 * math.pi / 3.0, pick_point=Vector(0.0, -1.0, 0.0))
+        mesh = TriangleMesh.make_disk(Vector(0.0, -self.overall_scale / 3.0, 0.0), Vector(0.0, 1.0, 0.0), 10.0, 6)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, -1.0, 0.0), angle=2.0 * math.pi / 3.0, pick_point=Vector(0.0, -self.overall_scale, 0.0))
         mesh_list.append(mesh)
         
         base_mesh = TriangleMesh().make_polyhedron(Polyhedron.HEXAHEDRON)
+        base_mesh = LinearTransform().make_uniform_scale(self.overall_scale)(base_mesh)
         
         lr_mesh = LinearTransform().make_non_uniform_scale(1.0 / 3.0, 1.0, 1.0)(base_mesh)
         ud_mesh = LinearTransform().make_non_uniform_scale(1.0, 1.0 / 3.0, 1.0)(base_mesh)
@@ -963,24 +965,26 @@ class CubesOnDisk(PuzzleDefinitionBase):
         ud_mesh = LinearTransform().make_uniform_scale(scale)(ud_mesh)
         fb_mesh = LinearTransform().make_uniform_scale(scale)(fb_mesh)
         
-        l_mesh = AffineTransform().make_translation(Vector(-1.0 / 3.0 - scale / 3.0, 0.0, 0.0))(lr_mesh)
-        r_mesh = AffineTransform().make_translation(Vector(1.0 / 3.0 + scale / 3.0, 0.0, 0.0))(lr_mesh)
+        alpha = (self.overall_scale / 3.0) * (1.0 + scale)
         
-        d_mesh = AffineTransform().make_translation(Vector(0.0, -1.0 / 3.0 - scale / 3.0, 0.0))(ud_mesh)
-        u_mesh = AffineTransform().make_translation(Vector(0.0, 1.0 / 3.0 + scale / 3.0, 0.0))(ud_mesh)
+        l_mesh = AffineTransform().make_translation(Vector(-alpha, 0.0, 0.0))(lr_mesh)
+        r_mesh = AffineTransform().make_translation(Vector(alpha, 0.0, 0.0))(lr_mesh)
         
-        b_mesh = AffineTransform().make_translation(Vector(0.0, 0.0, -1.0 / 3.0 - scale / 3.0))(fb_mesh)
-        f_mesh = AffineTransform().make_translation(Vector(0.0, 0.0, 1.0 / 3.0 + scale / 3.0))(fb_mesh)
+        d_mesh = AffineTransform().make_translation(Vector(0.0, -alpha, 0.0))(ud_mesh)
+        u_mesh = AffineTransform().make_translation(Vector(0.0, alpha, 0.0))(ud_mesh)
+        
+        b_mesh = AffineTransform().make_translation(Vector(0.0, 0.0, -alpha))(fb_mesh)
+        f_mesh = AffineTransform().make_translation(Vector(0.0, 0.0, alpha))(fb_mesh)
         
         for transform in self.transform_list:
-            mesh_list.append(GeneratorMesh(mesh=transform(l_mesh), center=transform(Vector(-1.0, 0.0, 0.0)), axis=transform.linear_transform(Vector(-1.0, 0.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(-1.0, 0.0, 0.0))))
-            mesh_list.append(GeneratorMesh(mesh=transform(r_mesh), center=transform(Vector(1.0, 0.0, 0.0)), axis=transform.linear_transform(Vector(1.0, 0.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(1.0, 0.0, 0.0))))
+            mesh_list.append(GeneratorMesh(mesh=transform(l_mesh), center=transform(Vector(-self.overall_scale, 0.0, 0.0)), axis=transform.linear_transform(Vector(-1.0, 0.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(-self.overall_scale, 0.0, 0.0))))
+            mesh_list.append(GeneratorMesh(mesh=transform(r_mesh), center=transform(Vector(self.overall_scale, 0.0, 0.0)), axis=transform.linear_transform(Vector(1.0, 0.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(self.overall_scale, 0.0, 0.0))))
             
-            mesh_list.append(GeneratorMesh(mesh=transform(d_mesh), center=transform(Vector(0.0, -1.0, 0.0)), axis=transform.linear_transform(Vector(0.0, -1.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, -1.0, 0.0))))
-            mesh_list.append(GeneratorMesh(mesh=transform(u_mesh), center=transform(Vector(0.0, 1.0, 0.0)), axis=transform.linear_transform(Vector(0.0, 1.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, 1.0, 0.0))))
+            mesh_list.append(GeneratorMesh(mesh=transform(d_mesh), center=transform(Vector(0.0, -self.overall_scale, 0.0)), axis=transform.linear_transform(Vector(0.0, -1.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, -self.overall_scale, 0.0))))
+            mesh_list.append(GeneratorMesh(mesh=transform(u_mesh), center=transform(Vector(0.0, self.overall_scale, 0.0)), axis=transform.linear_transform(Vector(0.0, 1.0, 0.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, self.overall_scale, 0.0))))
 
-            mesh_list.append(GeneratorMesh(mesh=transform(b_mesh), center=transform(Vector(0.0, 0.0, -1.0)), axis=transform.linear_transform(Vector(0.0, 0.0, -1.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, 0.0, -1.0))))
-            mesh_list.append(GeneratorMesh(mesh=transform(f_mesh), center=transform(Vector(0.0, 0.0, 1.0)), axis=transform.linear_transform(Vector(0.0, 0.0, 1.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, 0.0, 1.0))))
+            mesh_list.append(GeneratorMesh(mesh=transform(b_mesh), center=transform(Vector(0.0, 0.0, -self.overall_scale)), axis=transform.linear_transform(Vector(0.0, 0.0, -1.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, 0.0, -self.overall_scale))))
+            mesh_list.append(GeneratorMesh(mesh=transform(f_mesh), center=transform(Vector(0.0, 0.0, self.overall_scale)), axis=transform.linear_transform(Vector(0.0, 0.0, 1.0)), angle=math.pi / 2.0, pick_point=transform(Vector(0.0, 0.0, self.overall_scale))))
         
         return mesh_list
 

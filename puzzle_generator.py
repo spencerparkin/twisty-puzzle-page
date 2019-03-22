@@ -239,6 +239,7 @@ class PuzzleDefinitionBase(object):
 
     def calculate_uvs(self, final_mesh_list, initial_mesh_list):
         for i, mesh in enumerate(initial_mesh_list):
+            print('Calculating UVs for mesh %d...' % i)
             plane = PointCloud(mesh.vertex_list).fit_plane()
             if plane.center.dot(plane.unit_normal) < 0.0:
                 plane.unit_normal = -plane.unit_normal
