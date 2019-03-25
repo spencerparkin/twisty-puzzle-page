@@ -1,0 +1,137 @@
+[
+    {
+        "puzzle_icon": "images/Bagua.png",
+        "puzzle_label": "Bagua",
+        "puzzle_name": "Bagua"
+    },
+    {
+        "puzzle_icon": "images/BauhiniaDodecahedron.png",
+        "puzzle_label": "BauhiniaDodecahedron",
+        "puzzle_name": "BauhiniaDodecahedron"
+    },
+    {
+        "puzzle_icon": "images/Bubbloid4x4x5.png",
+        "puzzle_label": "Bubbloid4x4x5",
+        "puzzle_name": "Bubbloid4x4x5"
+    },
+    {
+        "puzzle_icon": "images/Crazy2x3x3.png",
+        "puzzle_label": "Crazy2x3x3",
+        "puzzle_name": "Crazy2x3x3"
+    },
+    {
+        "puzzle_icon": "images/CubesOnDisk.png",
+        "puzzle_label": "CubesOnDisk",
+        "puzzle_name": "CubesOnDisk"
+    },
+    {
+        "puzzle_icon": "images/CurvyCopter.png",
+        "puzzle_label": "CurvyCopter",
+        "puzzle_name": "CurvyCopter"
+    },
+    {
+        "puzzle_icon": "images/CurvyCopterPlus.png",
+        "puzzle_label": "CurvyCopterPlus",
+        "puzzle_name": "CurvyCopterPlus"
+    },
+    {
+        "puzzle_icon": "images/DinoCube.png",
+        "puzzle_label": "DinoCube",
+        "puzzle_name": "DinoCube"
+    },
+    {
+        "puzzle_icon": "images/Dogic.png",
+        "puzzle_label": "Dogic",
+        "puzzle_name": "Dogic"
+    },
+    {
+        "puzzle_icon": "images/FisherCube.png",
+        "puzzle_label": "FisherCube",
+        "puzzle_name": "FisherCube"
+    },
+    {
+        "puzzle_icon": "images/FlowerCopter.png",
+        "puzzle_label": "FlowerCopter",
+        "puzzle_name": "FlowerCopter"
+    },
+    {
+        "puzzle_icon": "images/FlowerRexCube.png",
+        "puzzle_label": "FlowerRexCube",
+        "puzzle_name": "FlowerRexCube"
+    },
+    {
+        "puzzle_icon": "images/FusedCube.png",
+        "puzzle_label": "FusedCube",
+        "puzzle_name": "FusedCube"
+    },
+    {
+        "puzzle_icon": "images/Gem8.png",
+        "puzzle_label": "Gem8",
+        "puzzle_name": "Gem8"
+    },
+    {
+        "puzzle_icon": "images/HelicopterCube.png",
+        "puzzle_label": "HelicopterCube",
+        "puzzle_name": "HelicopterCube"
+    },
+    {
+        "puzzle_icon": "images/Megaminx.png",
+        "puzzle_label": "Megaminx",
+        "puzzle_name": "Megaminx"
+    },
+    {
+        "puzzle_icon": "images/MixupCube.png",
+        "puzzle_label": "MixupCube",
+        "puzzle_name": "MixupCube"
+    },
+    {
+        "puzzle_icon": "images/PentacleCube.png",
+        "puzzle_label": "PentacleCube",
+        "puzzle_name": "PentacleCube"
+    },
+    {
+        "puzzle_icon": "images/Pyraminx.png",
+        "puzzle_label": "Pyraminx",
+        "puzzle_name": "Pyraminx"
+    },
+    {
+        "puzzle_icon": "images/Rubiks2x2.png",
+        "puzzle_label": "Rubiks2x2",
+        "puzzle_name": "Rubiks2x2"
+    },
+    {
+        "puzzle_icon": "images/Rubiks2x2x3.png",
+        "puzzle_label": "Rubiks2x2x3",
+        "puzzle_name": "Rubiks2x2x3"
+    },
+    {
+        "puzzle_icon": "images/Rubiks2x3x3.png",
+        "puzzle_label": "Rubiks2x3x3",
+        "puzzle_name": "Rubiks2x3x3"
+    },
+    {
+        "puzzle_icon": "images/Rubiks4x4.png",
+        "puzzle_label": "Rubiks4x4",
+        "puzzle_name": "Rubiks4x4"
+    },
+    {
+        "puzzle_icon": "images/RubiksCube.png",
+        "puzzle_label": "RubiksCube",
+        "puzzle_name": "RubiksCube"
+    },
+    {
+        "puzzle_icon": "images/Skewb.png",
+        "puzzle_label": "Skewb",
+        "puzzle_name": "Skewb"
+    },
+    {
+        "puzzle_icon": "images/SkewbUltimate.png",
+        "puzzle_label": "SkewbUltimate",
+        "puzzle_name": "SkewbUltimate"
+    },
+    {
+        "puzzle_icon": "images/SquareOne.png",
+        "puzzle_label": "SquareOne",
+        "puzzle_name": "SquareOne"
+    }
+]

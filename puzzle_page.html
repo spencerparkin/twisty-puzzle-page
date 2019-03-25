@@ -8,15 +8,14 @@
         <script src="scripts/gl-matrix.js"></script>
         <script src="scripts/gl-helpers.js"></script>
         <script src="puzzle_sequence.js"></script>
+        <script src="puzzle_menu.js"></script>
         <script src="puzzle_page.js"></script>
         <link rel="stylesheet" href="puzzle_page.css">
     </head>
     <body>
         <canvas id="puzzle_canvas"></canvas>
+        <div id="puzzle_menu_container"></div>
         <img src="images/loading.gif" id="loading_gif">
-        <span id="puzzle_menu">
-        </span>
-        <span id="puzzle_menu_label">Hello</span>
         <div id="puzzle_controls">
             <span class="first_column">Textures:</span>
             <span class="second_column"><input type="checkbox" data-bind="checked: apply_textures"></span>

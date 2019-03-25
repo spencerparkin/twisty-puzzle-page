@@ -38,6 +38,8 @@ class Window(QtGui.QOpenGLWindow):
     def paintGL(self):
         # The window is not meant to stick around.  We're just using it to generate images for the puzzle menu.
         
+        puzzle_menu_data = []
+        
         for root, dir_list, file_list in os.walk(os.getcwd() + '/puzzles'):
             for file in file_list:
                 puzzle_file = os.path.join(root, file)
@@ -55,8 +57,17 @@ class Window(QtGui.QOpenGLWindow):
                     
                     image = self.grabFramebuffer()
                     name, ext = os.path.splitext(file)
-                    image_file = os.getcwd() + '/menu/' + name + '.png'
-                    image.save(image_file)
+                    image_file = 'images/' + name + '.png'
+                    image.save(os.getcwd() + '/' + image_file)
+                    
+                    puzzle_menu_data.append({
+                        'puzzle_name': os.path.splitext(file)[0],
+                        'puzzle_label': puzzle_data.get('label', os.path.splitext(file)[0]),
+                        'puzzle_icon': image_file
+                    })
+        
+        with open(os.getcwd() + '/puzzle_menu.json', 'w') as handle:
+            handle.write(json.dumps(puzzle_menu_data, indent=4, separators=(',', ': '), sort_keys=True))
         
         app.quit()
     

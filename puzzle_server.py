@@ -12,20 +12,6 @@ class PuzzleServer(object):
     def default(self, **kwargs):
         return cherrypy.lib.static.serve_file(self.root_dir + '/puzzle_page.html', content_type='text/html')
 
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def puzzle_menu(self, **kwargs):
-        try:
-            menu_list = []
-            for root, dir_list, file_list in os.walk(self.root_dir + '/menu'):
-                for file in file_list:
-                    name, ext = os.path.splitext(file)
-                    menu_list.append(name)
-            menu_list.sort()
-            return menu_list
-        except Exception as ex:
-            return {'error': str(ex)}
-
 if __name__ == '__main__':
     root_dir = os.path.dirname(os.path.abspath(__file__))
     port = int(os.environ.get('PORT', 5200))

@@ -2,6 +2,7 @@
 
 var gl = undefined;
 var puzzle = undefined;
+var puzzle_menu = new PuzzleMenu();
 var puzzle_sequence_generator = new PuzzleSequenceMoveGenerator();
 var puzzle_shader = undefined;
 var puzzle_texture_list = [];
@@ -525,7 +526,7 @@ class Puzzle {
     }
 
     is_solved() {
-        // This might not actually be accurate, because there may be
+        // This is not actually accurate in most cases, because there may be
         // more than one solved state of the puzzle, each indistinguishable
         // from the other.  All solved states would form the kernel of a homomorphism.
         // Also, consider the same rotation applied to all parts of the puzzle.
@@ -578,6 +579,19 @@ function puzzle_animate_callback() {
 
         render_scene();
     }
+    
+    puzzle_menu.update();
+}
+
+function puzzle_menu_item_chosen_callback(puzzle_name) {
+    $('#loading_gif').show();
+    puzzle.name = puzzle_name;
+    puzzle.promise().then(() => {
+        $('#loading_gif').hide();
+        shuffle_list(puzzle_texture_list);
+        viewModel.clear_all();
+        render_scene();
+    });   
 }
 
 function canvas_mouse_wheel_move(event) {
@@ -707,6 +721,7 @@ function canvas_mouse_double_click(event) {
     if(confirm('Would you like to scramble the puzzle?')) {
         puzzle.scramble();
     }
+    dragging = false;
 }
 
 function calc_transform_matrix(canvas, reflect=false) {
@@ -758,139 +773,6 @@ function render_scene() {
     }
 }
 
-function promise_puzzle_menu() {
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: 'puzzle_menu',
-            dataType: 'json',
-            success: puzzle_menu => {
-                let puzzle_menu_div = document.getElementById('puzzle_menu');
-                for(let i = 0; i < puzzle_menu.length; i++) {
-                    let menu_item = puzzle_menu[i];
-                    let menu_item_icon = document.createElement('img');
-                    menu_item_icon.src = 'menu/' + menu_item + '.png';
-                    menu_item_icon.classList.add('puzzle_icon');
-                    menu_item_icon.addEventListener('click', () => {
-                        menu_item_clicked(menu_item);
-                    });
-                    menu_item_icon.addEventListener('mouseover', () => {
-                        menu_item_mouse_over(menu_item_icon, menu_item, i);
-                    });
-                    menu_item_icon.addEventListener('mouseout', () => {
-                        menu_item_mouse_out();
-                    });
-                    puzzle_menu_div.appendChild(menu_item_icon);
-                }
-                puzzle_menu_div.addEventListener('mousemove', menu_mouse_move);
-                puzzle_menu_div.addEventListener('mouseover', menu_mouse_over);
-                puzzle_menu_div.addEventListener('mouseout', menu_mouse_out);
-                setInterval(menu_animate, 10);
-                menu_update();
-                resolve('RubiksCube');
-            },
-            failure: error => {
-                alert(error);
-                reject();
-            }
-        });
-    });
-}
-
-var puzzle_menu_scroll_target = 0.0;
-var puzzle_menu_scroll = 0.0;
-var puzzle_menu_deploy_target = 0.0;
-var puzzle_menu_deploy = 0.0;
-var puzzle_menu_item_hover = undefined;
-
-function menu_mouse_move(event) {
-    let puzzle_menu_div = document.getElementById('puzzle_menu');
-    
-    if(event.pageX < puzzle_menu_div.offsetHeight) {
-        puzzle_menu_scroll_target = 0.0;
-    } else if(event.pageX > puzzle_menu_div.offsetWidth - puzzle_menu_div.offsetHeight) {
-        puzzle_menu_scroll_target = 1.0;
-    } else {
-        puzzle_menu_scroll_target = event.pageX / puzzle_menu_div.offsetWidth;
-    }
-}
-
-function menu_mouse_over(event) {
-    puzzle_menu_deploy_target = 1.0;
-}
-
-function menu_mouse_out(event) {
-    puzzle_menu_deploy_target = 0.0;
-}
-
-function menu_item_mouse_over(menu_item_icon, menu_item, i) {
-    let label = document.getElementById('puzzle_menu_label');
-    label.style.display = 'block';
-    label.innerHTML = menu_item;
-    label.style.left = menu_item_icon.x + 'px';
-    puzzle_menu_item_hover = menu_item_icon;
-}
-
-function menu_item_mouse_out() {
-    let label = document.getElementById('puzzle_menu_label');
-    label.style.display = 'none';
-    puzzle_menu_item_hover = undefined;
-}
-
-function menu_update() {
-    let puzzle_menu_div = document.getElementById('puzzle_menu');
-    let label = document.getElementById('puzzle_menu_label');
-    
-    puzzle_menu_div.style.opacity = puzzle_menu_deploy;
-    label.style.opacity = puzzle_menu_deploy;
-    
-    if(puzzle_menu_item_hover)
-        label.style.left = puzzle_menu_item_hover.x + 'px'; 
-    
-    let menu_width = puzzle_menu_div.offsetWidth;
-    let icon_width = puzzle_menu_div.children[0].offsetWidth;
-    let total_icon_width = icon_width * puzzle_menu_div.children.length;
-    let left = 0.0;
-    
-    if(total_icon_width < menu_width) {
-        puzzle_menu_scroll = 0.5;
-    }
-    
-    left = (menu_width - total_icon_width) * puzzle_menu_scroll;
-    
-    for(let i = 0; i < puzzle_menu_div.children.length; i++) {
-        let menu_item_icon = puzzle_menu_div.children[i];
-        
-        // It's really confusing to me that they all need to be set to this.
-        menu_item_icon.style.left = left.toString() + 'px';
-    }
-}
-
-function lerp_value(value_a, value_b, alpha, eps=1e-10) {
-    let value = value_a + alpha * (value_b - value_a);
-    if(Math.abs(value - value_b) < eps)
-        value = value_b;
-    return value;
-}
-
-function menu_animate() {
-    if(puzzle_menu_scroll != puzzle_menu_scroll_target || puzzle_menu_deploy != puzzle_menu_deploy_target) {
-        puzzle_menu_scroll = lerp_value(puzzle_menu_scroll, puzzle_menu_scroll_target, 0.05);
-        puzzle_menu_deploy = lerp_value(puzzle_menu_deploy, puzzle_menu_deploy_target, 0.05);
-        menu_update();
-    }
-}
-
-function menu_item_clicked(menu_item) {
-    $('#loading_gif').show();
-    puzzle.name = menu_item;
-    puzzle.promise().then(() => {
-        $('#loading_gif').hide();
-        shuffle_list(puzzle_texture_list);
-        viewModel.clear_all();
-        render_scene();
-    });
-}
-
 function document_ready() {
     try {
         let canvas = $('#puzzle_canvas')[0];
@@ -906,7 +788,9 @@ function document_ready() {
 	    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	    gl.enable(gl.CULL_FACE);
 	    
-	    promise_puzzle_menu().then(initial_puzzle => {
+	    $('#loading_gif').show();
+	    
+	    puzzle_menu.promise().then(initial_puzzle => {
 	    
             puzzle = new Puzzle(initial_puzzle);
             puzzle_shader = new ShaderProgram('shaders/puzzle_vert_shader.txt', 'shaders/puzzle_frag_shader.txt');
@@ -921,16 +805,16 @@ function document_ready() {
                 puzzle_texture_list.push(puzzle_texture);
                 promise_list.push(puzzle_texture.promise());
             }
-
-            $('#loading_gif').show();
+            
             Promise.all(promise_list).then(() => {
                 $('#loading_gif').hide();
+                
+                puzzle_menu.callback = puzzle_menu_item_chosen_callback;
                 
                 shuffle_list(puzzle_texture_list);
 
                 $(window).bind('resize', function() {
                     render_scene();
-                    menu_update();
                 });
     
                 let canvas = $('#puzzle_canvas')[0];
