@@ -105,6 +105,21 @@ class PuzzleMenu {
                 puzzle_icon.style.height = puzzle_icon.menu_size.toString() + 'px';
                 puzzle_icon.style.left = puzzle_icon.menu_x.toString() + 'px';
             }
+            
+            let max_scroll_speed = 10.0;
+            let scroll_velocity = 0.0;
+            let min_x = puzzle_menu_container.offsetWidth / 5;
+            let max_x = puzzle_menu_container.offsetWidth - min_x;
+            if(this.mouseX < min_x)
+                scroll_velocity = max_scroll_speed * (min_x - this.mouseX) / min_x;
+            else if(this.mouseX > max_x) {
+                let last_icon = puzzle_menu_container.children[puzzle_menu_container.children.length - 1];
+                if(last_icon.menu_x + last_icon.menu_size >= puzzle_menu_container.offsetWidth)
+                    scroll_velocity = -max_scroll_speed * (this.mouseX - max_x) / min_x;
+            }
+            this.scrollX += scroll_velocity;
+            if(this.scrollX > 0)
+                this.scrollX = 0;
         }
     }
     
