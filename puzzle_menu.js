@@ -146,7 +146,7 @@ class PuzzleMenu {
     }
     
     menu_item_mouse_over(puzzle_icon, puzzle_label) {
-    
+        // TODO: Add tool-tips with puzzle labels.
     }
     
     menu_item_mouse_out(puzzle_icon) {
