@@ -68,22 +68,50 @@ class PuzzleMenu {
         let puzzle_menu_container = document.getElementById('puzzle_menu_container');
         
         this.alpha = this.lerp_value(this.alpha, this.alpha_target, 0.05);
-        this.alpha = 1.0; // hack for now
         puzzle_menu_container.style.opacity = this.alpha;
-        
-        let size = 70.0;
-        let x = 0.0;
-        for(let i = 0; i < puzzle_menu_container.children.length; i++) {
-            let puzzle_icon = puzzle_menu_container.children[i];
+
+        if(this.alpha > 0) {        
+            let threshold = 300.0;
+            let min_size = 70.0;
+            let max_size = 140.0;
+            let size = min_size;
+            let x = this.scrollX;
+            let total_weight = 0.0;
             
-            puzzle_icon.style.width = size.toString() + 'px';
-            puzzle_icon.style.height = size.toString() + 'px';
-            puzzle_icon.style.left = x.toString() + 'px';
+            for(let i = 0; i < puzzle_menu_container.children.length; i++) {
+                let puzzle_icon = puzzle_menu_container.children[i];
+                let distance = Math.abs(x + size - this.mouseX);
+                if(distance < threshold) {
+                    puzzle_icon.menu_weight = Math.pow(threshold - distance, 5.0);
+                } else {
+                    puzzle_icon.menu_weight = 0.0;
+                }
+                total_weight += puzzle_icon.menu_weight;
+                x += size;
+            }
             
-            x += size;
+            x = this.scrollX;
+            for(let i = 0; i < puzzle_menu_container.children.length; i++) {
+                let puzzle_icon = puzzle_menu_container.children[i];
+                let t = puzzle_icon.menu_weight / total_weight;
+                puzzle_icon.menu_size = this.lerp_value(min_size, max_size, t);
+                puzzle_icon.menu_x = x;
+                x += puzzle_icon.menu_size;
+            }
+            
+            for(let i = 0; i < puzzle_menu_container.children.length; i++) {
+                let puzzle_icon = puzzle_menu_container.children[i];
+                puzzle_icon.style.width = puzzle_icon.menu_size.toString() + 'px';
+                puzzle_icon.style.height = puzzle_icon.menu_size.toString() + 'px';
+                puzzle_icon.style.left = puzzle_icon.menu_x.toString() + 'px';
+            }
         }
-        
-        // TODO: Position icons in a fancy manner and allow for scrolling.
+    }
+    
+    dilate_icon(j, delta) {
+        let puzzle_icon = puzzle_menu_container.children[i];
+        puzzle_icon.size += delta;
+        puzzle_icon.x -= delta / 2;
     }
     
     menu_mouse_move(event) {
