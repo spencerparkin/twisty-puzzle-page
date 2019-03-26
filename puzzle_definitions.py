@@ -4,6 +4,7 @@ import math
 
 from puzzle_generator import PuzzleDefinitionBase
 from math3d_triangle_mesh import TriangleMesh, Polyhedron
+from math3d_triangle import Triangle
 from math3d_vector import Vector
 from math3d_transform import AffineTransform, LinearTransform
 from math3d_sphere import Sphere
@@ -988,8 +989,291 @@ class CubesOnDisk(PuzzleDefinitionBase):
         
         return mesh_list
 
+class WormHoleBase(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+        self.beta = 2.0 / (math.sqrt(2.0) + 4.0)
+        self.alpha = math.sqrt(2.0) * self.beta
+
+    def make_initial_mesh_list(self):
+        common_face_mesh_list = []
+        
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(-self.alpha / 2.0, -self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0, -self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0, self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0, self.alpha / 2.0, 0.0)
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, -self.alpha / 2.0 - 2.0 * self.beta, 0.0),
+            Vector(-self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta, 0.0),
+            Vector(-self.alpha / 2.0, -self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, -self.alpha / 2.0, 0.0),
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta, 0.0),
+            Vector(self.alpha / 2.0 + 2.0 * self.beta, -self.alpha / 2.0 - 2.0 * self.beta, 0.0),
+            Vector(self.alpha / 2.0 + 2.0 * self.beta, -self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0, -self.alpha / 2.0, 0.0),
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(self.alpha / 2.0, self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0 + 2.0 * self.beta, self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0 + 2.0 * self.beta, self.alpha / 2.0 + 2.0 * self.beta, 0.0),
+            Vector(self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta, 0.0),
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0, self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta, 0.0),
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, self.alpha / 2.0 + 2.0 * self.beta, 0.0),
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(-self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta, 0.0),
+            Vector(self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta, 0.0),
+            Vector(self.alpha / 2.0, -self.alpha / 2.0 - self.beta, 0.0),
+            Vector(-self.alpha / 2.0, -self.alpha / 2.0 - self.beta, 0.0),
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(self.alpha / 2.0 + self.beta, -self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0 + 2.0 * self.beta, -self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0 + 2.0 * self.beta, self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0 + self.beta, self.alpha / 2.0, 0.0),
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(-self.alpha / 2.0, self.alpha / 2.0 + self.beta, 0.0),
+            Vector(self.alpha / 2.0, self.alpha / 2.0 + self.beta, 0.0),
+            Vector(self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta, 0.0),
+            Vector(-self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta, 0.0),
+        ))
+        common_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, -self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0 - self.beta, -self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0 - self.beta, self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, self.alpha / 2.0, 0.0),
+        ))
+        
+        transform_list = []
+        transform_list.append(AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), -math.pi / 2.0, Vector(-1.0, 0.0, 0.0)))   # left
+        transform_list.append(AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0, Vector(1.0, 0.0, 0.0)))     # right
+        transform_list.append(AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi / 2.0, Vector(0.0, -1.0, 0.0)))    # down
+        transform_list.append(AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), -math.pi / 2.0, Vector(0.0, 1.0, 0.0)))    # up
+        transform_list.append(AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi, Vector(0.0, 0.0, -1.0)))          # back
+        transform_list.append(AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), 0.0, Vector(0.0, 0.0, 1.0)))               # front
+        
+        color_list = [
+            Vector(0.0, 0.0, 1.0),
+            Vector(0.0, 1.0, 0.0),
+            Vector(1.0, 1.0, 1.0),
+            Vector(1.0, 1.0, 0.0),
+            Vector(1.0, 0.5, 0.0),
+            Vector(1.0, 0.0, 0.0)
+        ]
+        
+        mesh_list = []
+        for i, transform in enumerate(transform_list):
+            for mesh in common_face_mesh_list:
+                mesh = ColoredMesh(mesh=transform(mesh), color=color_list[i])
+                mesh_list.append(mesh)
+        
+        return mesh_list
+
+    def make_generator_mesh_list(self):
+        return []
+    
+    def make_other_faces(self, inset, rotated):
+        other_face_mesh_list = []
+        
+        other_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(-self.alpha / 2.0 - self.beta, -self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0, -self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0, self.alpha / 2.0, 0.0),
+            Vector(-self.alpha / 2.0 - self.beta, self.alpha / 2.0, 0.0)
+        ))
+        other_face_mesh_list.append(TriangleMesh().add_quad(
+            Vector(self.alpha / 2.0, -self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0 + self.beta, -self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0 + self.beta, self.alpha / 2.0, 0.0),
+            Vector(self.alpha / 2.0, self.alpha / 2.0, 0.0)
+        ))
+        
+        if rotated:
+            other_face_mesh_list = [LinearTransform().make_rotation(Vector(0.0, 0.0, 1.0), math.pi / 2.0)(mesh) for mesh in other_face_mesh_list]
+        
+        if inset:
+            other_face_mesh_list = [AffineTransform().make_translation(Vector(0.0, 0.0, -0.3))(mesh) for mesh in other_face_mesh_list]
+        
+        return other_face_mesh_list
+
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
+        # Unlike most puzzles, this one is constructed entirely pre-cut.
+        return False
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+
+        mesh = TriangleMesh.make_disk(Vector(self.alpha / 2.0, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(1.0, 0.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(1.0, 0.0, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(-self.alpha / 2.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(-1.0, 0.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(-1.0, 0.0, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, self.alpha / 2.0, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 1.0, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, -self.alpha / 2.0, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, -1.0, 0.0), angle=math.pi / 2.0, pick_point=Vector(0.0, -1.0, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, 0.0, self.alpha / 2.0), Vector(0.0, 0.0, -1.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 0.0, 1.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 0.0, 1.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, 0.0, -self.alpha / 2.0), Vector(0.0, 0.0, 1.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 0.0, -1.0), angle=math.pi / 2.0, pick_point=Vector(0.0, 0.0, -1.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(self.alpha / 2.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4) + TriangleMesh.make_disk(Vector(-self.alpha / 2.0, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(1.0, 0.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(1.5, 0.0, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(self.alpha / 2.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), 4.0, 4) + TriangleMesh.make_disk(Vector(-self.alpha / 2.0, 0.0, 0.0), Vector(-1.0, 0.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(1.0, 0.0, 0.0), angle=-math.pi / 4.0, pick_point=Vector(-1.5, 0.0, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, self.alpha / 2.0, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4) + TriangleMesh.make_disk(Vector(0.0, -self.alpha / 2.0, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 1.0, 0.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 1.5, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, self.alpha / 2.0, 0.0), Vector(0.0, 1.0, 0.0), 4.0, 4) + TriangleMesh.make_disk(Vector(0.0, -self.alpha / 2.0, 0.0), Vector(0.0, -1.0, 0.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 1.0, 0.0), angle=-math.pi / 4.0, pick_point=Vector(0.0, -1.5, 0.0))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, 0.0, self.alpha / 2.0), Vector(0.0, 0.0, 1.0), 4.0, 4) + TriangleMesh.make_disk(Vector(0.0, 0.0, -self.alpha / 2.0), Vector(0.0, 0.0, -1.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 0.0, 1.0), angle=math.pi / 4.0, pick_point=Vector(0.0, 0.0, 1.5))
+        mesh_list.append(mesh)
+
+        mesh = TriangleMesh.make_disk(Vector(0.0, 0.0, self.alpha / 2.0), Vector(0.0, 0.0, 1.0), 4.0, 4) + TriangleMesh.make_disk(Vector(0.0, 0.0, -self.alpha / 2.0), Vector(0.0, 0.0, -1.0), 4.0, 4)
+        mesh = GeneratorMesh(mesh=mesh, axis=Vector(0.0, 0.0, 1.0), angle=-math.pi / 4.0, pick_point=Vector(0.0, 0.0, -1.5))
+        mesh_list.append(mesh)
+
+        point_cloud = PointCloud()
+        point_cloud.add_point(Vector(-self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta + 0.29, 0.71))
+        point_cloud.add_point(Vector(-self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta + 0.29, -0.71))
+        point_cloud.add_point(Vector(self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta + 0.29, 0.71))
+        point_cloud.add_point(Vector(self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta + 0.29, -0.71))
+        point_cloud.add_point(Vector(self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta - 0.29, 0.71))
+        point_cloud.add_point(Vector(self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta - 0.29, -0.71))
+        point_cloud.add_point(Vector(-self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta - 0.29, 0.71))
+        point_cloud.add_point(Vector(-self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta - 0.29, -0.71))
+        
+        x_mesh = point_cloud.find_convex_hull()
+        y_mesh = LinearTransform().make_rotation(Vector(0.0, 0.0, 1.0), math.pi / 2.0)(x_mesh)
+        z_mesh = LinearTransform().make_rotation(Vector(0.0, 1.0, 0.0), math.pi / 2.0)(x_mesh)
+        
+        x_mesh = GeneratorMesh(mesh=x_mesh, axis=Vector(0.0, 0.0, 0.0), angle=0.0, pick_point=None)
+        y_mesh = GeneratorMesh(mesh=y_mesh, axis=Vector(0.0, 0.0, 0.0), angle=0.0, pick_point=None)
+        z_mesh = GeneratorMesh(mesh=z_mesh, axis=Vector(0.0, 0.0, 0.0), angle=0.0, pick_point=None)
+
+        mesh_list += [x_mesh, y_mesh, z_mesh]
+
+        for i in range(2):
+            mesh_list[6 + i].capture_tree_root = {
+                'op': 'subtract',
+                'children': [
+                    {'mesh': 6 + i},
+                    {'mesh': len(mesh_list) - 3}
+                ]
+            }
+            mesh_list[8 + i].capture_tree_root = {
+                'op': 'subtract',
+                'children': [
+                    {'mesh': 8 + i},
+                    {'mesh': len(mesh_list) - 2}
+                ]
+            }
+            mesh_list[10 + i].capture_tree_root = {
+                'op': 'subtract',
+                'children': [
+                    {'mesh': 10 + i},
+                    {'mesh': len(mesh_list) - 1}
+                ]
+            }
+
+        return mesh_list
+
+class WormHoleII(WormHoleBase):
+    def __init__(self):
+        super().__init__()
+    
+    def bandages(self):
+        return True
+    
+    def make_initial_mesh_list(self):
+        mesh_list = super().make_initial_mesh_list()
+        
+        # TODO: Currently, the puzzle doesn't bandage when it should.  I'm not sure how to fix this.  Some invisible faces might do the trick.
+        #       We would have to add an invisible face that bisects each inset area on each face.  It would take a bit of time, but it's worth a try.
+        
+        # red face
+        for mesh in self.make_other_faces(False, False):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_translation(Vector(0.0, 0.0, 1.0))(mesh), color=Vector(1.0, 0.0, 0.0)))
+        for mesh in self.make_other_faces(True, True):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_translation(Vector(0.0, 0.0, 1.0))(mesh), color=Vector(1.0, 0.0, 0.0)))
+        
+        # orange face
+        for mesh in self.make_other_faces(False, False):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi, Vector(0.0, 0.0, -1.0))(mesh), color=Vector(1.0, 0.5, 0.0)))
+        for mesh in self.make_other_faces(True, True):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi, Vector(0.0, 0.0, -1.0))(mesh), color=Vector(1.0, 0.5, 0.0)))
+
+        # green face
+        for mesh in self.make_other_faces(False, False):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0, Vector(1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 1.0, 0.0)))
+        for mesh in self.make_other_faces(True, True):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0, Vector(1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 1.0, 0.0)))
+        
+        # blue face
+        for mesh in self.make_other_faces(False, False):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), -math.pi / 2.0, Vector(-1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 0.0, 1.0)))
+        for mesh in self.make_other_faces(True, True):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), -math.pi / 2.0, Vector(-1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 0.0, 1.0)))
+        
+        # yellow face
+        for mesh in self.make_other_faces(True, False) + self.make_other_faces(True, True):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), -math.pi / 2.0, Vector(0.0, 1.0, 0.0))(mesh), color=Vector(1.0, 1.0, 0.0)))
+        
+        # white face
+        for mesh in self.make_other_faces(True, False) + self.make_other_faces(True, True):
+            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi / 2.0, Vector(0.0, -1.0, 0.0))(mesh), color=Vector(1.0, 1.0, 1.0)))
+        
+        # hidden face (for core logic)
+        mesh = TriangleMesh().add_triangle(Triangle(
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, -self.alpha / 2.0 - 2.0 * self.beta, self.alpha / 2.0),
+            Vector(-self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta, self.alpha / 2.0 + 2.0 * self.beta),
+            Vector(-self.alpha / 2.0 - 2.0 * self.beta, -self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta)
+        ))
+        mesh = ColoredMesh(mesh=mesh, color=Vector(0.0, 0.0, 0.0))
+        mesh_list.append(mesh)
+        
+        return mesh_list
+
+    def annotate_puzzle_data(self, puzzle_data):
+        generator_mesh_list = puzzle_data['generator_mesh_list']
+
+        generator_mesh_list[0]['special_case_data'] = len(generator_mesh_list) - 3
+        generator_mesh_list[1]['special_case_data'] = len(generator_mesh_list) - 3
+
+        generator_mesh_list[2]['special_case_data'] = len(generator_mesh_list) - 2
+        generator_mesh_list[3]['special_case_data'] = len(generator_mesh_list) - 2
+
+        generator_mesh_list[4]['special_case_data'] = len(generator_mesh_list) - 1
+        generator_mesh_list[5]['special_case_data'] = len(generator_mesh_list) - 1
+
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.
-# TODO: How would we do the Worm Hole II?  The capture tree mechanism may be sufficient to get this done.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add Gem series?

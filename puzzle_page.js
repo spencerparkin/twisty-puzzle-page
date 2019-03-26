@@ -474,9 +474,29 @@ class Puzzle {
         if(generator.capture_tree_root) {
             let captured_mesh_set = this.execute_capture_tree(generator.capture_tree_root);
             captured_mesh_set.forEach(func);
+        } else if(this.name === 'WormHoleII') {
+            this._for_wormhole_capture_meshes(generator, func);
         } else {
             this._for_captured_meshes_internal(generator, func);
         }
+    }
+    
+    _for_wormhole_capture_meshes(generator, func) {
+        let captured_mesh_set = new Set();
+        this._for_captured_meshes_internal(generator, mesh => {
+            captured_mesh_set.add(mesh);
+        });
+        let capture_core_too = false;
+        captured_mesh_set.forEach(mesh => {
+            if(mesh.triangle_list.length === 1)
+                capture_core_too = true;
+        });
+        if(capture_core_too) {
+            this._for_captured_meshes_internal(this.generator_list[generator.special_case_data], mesh => {
+                captured_mesh_set.add(mesh);
+            });
+        }
+        captured_mesh_set.forEach(func);
     }
     
     _for_captured_meshes_internal(generator, func) {

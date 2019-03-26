@@ -133,5 +133,10 @@
         "puzzle_icon": "images/SquareOne.png",
         "puzzle_label": "SquareOne",
         "puzzle_name": "SquareOne"
+    },
+    {
+        "puzzle_icon": "images/WormHoleII.png",
+        "puzzle_label": "WormHoleII",
+        "puzzle_name": "WormHoleII"
     }
 ]
