@@ -49,12 +49,12 @@ var ViewModel = function() {
         if(this.move_queue().length > 0) {
             
             let move = this.move_queue.shift();
-            move.apply();
-            
-            if(move.for_what == 'history')
-                this.undo_move_list.push(move);
-            else if(move.for_what == 'future')
-                this.redo_move_list.unshift(move);
+            if(move.apply()) {
+                if(move.for_what == 'history')
+                    this.undo_move_list.push(move);
+                else if(move.for_what == 'future')
+                    this.redo_move_list.unshift(move);
+            }
                 
             return true;
         } else {
@@ -308,7 +308,7 @@ class PuzzleMove {
     apply() {
         if(puzzle.bandages) {
             if(puzzle.generator_constrained(this.generator))
-                return;
+                return false;
         }
         
         let angle = this.override_angle ? this.override_angle : this.generator.angle;
@@ -323,6 +323,8 @@ class PuzzleMove {
             vec3.copy(mesh.animation_axis, this.generator.axis);
             mesh.animation_angle = this.inverse ? -angle : angle;
         });
+        
+        return true;
     }
     
     invert() {
