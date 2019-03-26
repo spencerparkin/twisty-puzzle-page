@@ -145,7 +145,7 @@ function vec3_create(data) {
     if(data)
         vec3.set(vec, data.x, data.y, data.z);
     else
-        vec3.set(vec, 0.0, 0.0, 0.0);
+        vec = undefined;
     return vec;
 }
 
