@@ -7,6 +7,7 @@ class PuzzleMenu {
         this.alpha = 0.0;
         this.scrollX = 0;
         this.mouseX = 0;
+        this.label_icon = undefined;
     }
     
     promise() {
@@ -18,18 +19,19 @@ class PuzzleMenu {
                     
                     let puzzle_menu_container = document.getElementById('puzzle_menu_container');
                     while(puzzle_menu_container.firstChild)
-                        puzzle_menu_container.removechild(puzzle_menu_container.firstChild);
+                        puzzle_menu_container.removeChild(puzzle_menu_container.firstChild);
                     
                     for(let i = 0; i < puzzle_menu_list.length; i++) {
                         let puzzle_menu_item = puzzle_menu_list[i];
                         let puzzle_menu_icon = document.createElement('img');
                         puzzle_menu_icon.classList.add('puzzle_icon');
                         puzzle_menu_icon.src = 'images/' + puzzle_menu_item.puzzle_name + '.png';
+                        puzzle_menu_icon.label = puzzle_menu_item.puzzle_label;
                         puzzle_menu_icon.addEventListener('click', () => {
                             this.menu_item_clicked(puzzle_menu_item.puzzle_name);
                         });
                         puzzle_menu_icon.addEventListener('mouseover', () => {
-                            this.menu_item_mouse_over(puzzle_menu_icon, puzzle_menu_item.puzzle_label);
+                            this.menu_item_mouse_over(puzzle_menu_icon);
                         });
                         puzzle_menu_icon.addEventListener('mouseout', () => {
                             this.menu_item_mouse_out(puzzle_menu_icon);
@@ -46,7 +48,9 @@ class PuzzleMenu {
                     puzzle_menu_container.addEventListener('mouseout', event => {
                         this.menu_mouse_out(event);
                     });
-                    
+
+                    this.update();
+
                     resolve('RubiksCube');
                 },
                 failure: error => {
@@ -120,6 +124,12 @@ class PuzzleMenu {
             this.scrollX += scroll_velocity;
             if(this.scrollX > 0)
                 this.scrollX = 0;
+
+            if(this.label_icon) {
+                let label = document.getElementById('puzzle_menu_label');
+                label.style.top = this.label_icon.offsetTop + this.label_icon.offsetHeight + 'px';
+                label.style.left = Math.floor(this.label_icon.offsetLeft + this.label_icon.offsetWidth / 2 - label.offsetWidth / 2) + 'px';
+            }
         }
     }
     
@@ -145,11 +155,16 @@ class PuzzleMenu {
         this.callback(puzzle_name);
     }
     
-    menu_item_mouse_over(puzzle_icon, puzzle_label) {
-        // TODO: Add tool-tips with puzzle labels.
+    menu_item_mouse_over(puzzle_icon) {
+        this.label_icon = puzzle_icon;
+        let label = document.getElementById('puzzle_menu_label');
+        label.style.display = 'block';
+        label.innerHTML = puzzle_icon.label;
     }
     
     menu_item_mouse_out(puzzle_icon) {
-    
+        this.label_icon = undefined;
+        let label = document.getElementById('puzzle_menu_label');
+        label.style.display = 'none';
     }
 }
