@@ -1081,7 +1081,7 @@ class WormHoleBase(PuzzleDefinitionBase):
     def make_generator_mesh_list(self):
         return []
     
-    def make_other_faces(self, inset, rotated):
+    def make_other_faces(self, inset_only, rotated):
         other_face_mesh_list = []
         
         other_face_mesh_list.append(TriangleMesh().add_quad(
@@ -1100,8 +1100,10 @@ class WormHoleBase(PuzzleDefinitionBase):
         if rotated:
             other_face_mesh_list = [LinearTransform().make_rotation(Vector(0.0, 0.0, 1.0), math.pi / 2.0)(mesh) for mesh in other_face_mesh_list]
         
-        if inset:
+        if inset_only:
             other_face_mesh_list = [AffineTransform().make_translation(Vector(0.0, 0.0, -0.3))(mesh) for mesh in other_face_mesh_list]
+        else:
+            other_face_mesh_list += [AffineTransform().make_translation(Vector(0.0, 0.0, -0.3))(mesh) for mesh in other_face_mesh_list]
         
         return other_face_mesh_list
 
@@ -1174,9 +1176,9 @@ class WormHoleBase(PuzzleDefinitionBase):
         y_mesh = LinearTransform().make_rotation(Vector(0.0, 0.0, 1.0), math.pi / 2.0)(x_mesh)
         z_mesh = LinearTransform().make_rotation(Vector(0.0, 1.0, 0.0), math.pi / 2.0)(x_mesh)
         
-        x_mesh = GeneratorMesh(mesh=x_mesh, axis=Vector(0.0, 0.0, 0.0), angle=0.0, pick_point=None)
-        y_mesh = GeneratorMesh(mesh=y_mesh, axis=Vector(0.0, 0.0, 0.0), angle=0.0, pick_point=None)
-        z_mesh = GeneratorMesh(mesh=z_mesh, axis=Vector(0.0, 0.0, 0.0), angle=0.0, pick_point=None)
+        x_mesh = GeneratorMesh(mesh=x_mesh, axis=Vector(1.0, 0.0, 0.0), angle=0.0, pick_point=None)
+        y_mesh = GeneratorMesh(mesh=y_mesh, axis=Vector(0.0, 1.0, 0.0), angle=0.0, pick_point=None)
+        z_mesh = GeneratorMesh(mesh=z_mesh, axis=Vector(0.0, 0.0, 1.0), angle=0.0, pick_point=None)
 
         mesh_list += [x_mesh, y_mesh, z_mesh]
 
@@ -1256,22 +1258,10 @@ class WormHoleII(WormHoleBase):
             Vector(-self.alpha / 2.0, -self.alpha / 2.0 - 2.0 * self.beta, self.alpha / 2.0 + 2.0 * self.beta),
             Vector(-self.alpha / 2.0 - 2.0 * self.beta, -self.alpha / 2.0, self.alpha / 2.0 + 2.0 * self.beta)
         ))
-        mesh = ColoredMesh(mesh=mesh, color=Vector(0.0, 0.0, 0.0))
+        mesh = ColoredMesh(mesh=mesh, color=Vector(0.0, 0.0, 0.0), alpha=0.0)
         mesh_list.append(mesh)
         
         return mesh_list
-
-    def annotate_puzzle_data(self, puzzle_data):
-        generator_mesh_list = puzzle_data['generator_mesh_list']
-
-        generator_mesh_list[0]['special_case_data'] = len(generator_mesh_list) - 3
-        generator_mesh_list[1]['special_case_data'] = len(generator_mesh_list) - 3
-
-        generator_mesh_list[2]['special_case_data'] = len(generator_mesh_list) - 2
-        generator_mesh_list[3]['special_case_data'] = len(generator_mesh_list) - 2
-
-        generator_mesh_list[4]['special_case_data'] = len(generator_mesh_list) - 1
-        generator_mesh_list[5]['special_case_data'] = len(generator_mesh_list) - 1
 
 # TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
 # TODO: Add Eitan's Star.

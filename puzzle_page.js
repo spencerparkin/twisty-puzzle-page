@@ -494,7 +494,16 @@ class Puzzle {
                 capture_core_too = true;
         });
         if(capture_core_too) {
-            this._for_captured_meshes_internal(this.generator_list[generator.special_case_data], mesh => {
+            let i = this.generator_list.length - 3;
+            let core_generator_list = [this.generator_list[i], this.generator_list[i + 1], this.generator_list[i + 2]];
+            let core_generator = core_generator_list.reduce((best_generator, cur_generator) => {
+                let cur_dot = Math.abs(vec3.dot(generator.axis, cur_generator.axis));
+                let best_dot = Math.abs(vec3.dot(generator.axis, best_generator.axis));
+                if(Math.abs(cur_dot - 1.0) < Math.abs(best_dot - 1.0))
+                    return cur_generator;
+                return best_generator;
+            });
+            this._for_captured_meshes_internal(core_generator, mesh => {
                 captured_mesh_set.add(mesh);
             });
         }

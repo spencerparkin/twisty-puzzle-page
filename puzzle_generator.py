@@ -13,9 +13,10 @@ from math3d_side import Side
 from math3d_point_cloud import PointCloud
 
 class ColoredMesh(TriangleMesh):
-    def __init__(self, mesh=None, color=None):
+    def __init__(self, mesh=None, color=None, alpha=1.0):
         super().__init__(mesh=mesh)
         self.color = color if color is not None else Vector(0.0, 0.0, 0.0)
+        self.alpha = alpha
         self.uv_list = []
         self.normal_list = []
         self.texture_number = -1
@@ -26,6 +27,7 @@ class ColoredMesh(TriangleMesh):
     def to_dict(self):
         data = super().to_dict()
         data['color'] = self.color.to_dict()
+        data['alpha'] = self.alpha
         data['uv_list'] = [uv.to_dict() for uv in self.uv_list]
         data['normal_list'] = [normal.to_dict() for normal in self.normal_list]
         data['texture_number'] = self.texture_number
@@ -34,6 +36,7 @@ class ColoredMesh(TriangleMesh):
     def from_dict(self, data):
         super().from_dict(data)
         self.color = Vector().from_dict(data.get('color', {}))
+        self.alpha = data.get('alpha', 1.0)
         self.uv_list = [Vector().from_dict(uv) for uv in data.get('uv_list', [])]
         self.normal_list = [Vector().from_dict(normal) for normal in data.get('normal_list', [])]
         self.texture_number = data.get('texture_number', -1)
