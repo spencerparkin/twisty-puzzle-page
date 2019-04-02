@@ -172,6 +172,7 @@ class PuzzleMesh extends StaticTriangleMesh {
         this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list);
         this.texture_number = mesh_data.texture_number;
         this.color = vec3_create(mesh_data.color);
+        this.alpha = mesh_data.alpha;
         this.center = vec3_create(mesh_data.center);
         this.permutation_transform = mat4.create(); // Takes the mesh from the solved state to the scrambled state.
         this.animation_center = vec3_create({x: 0.0, y: 0.0, z: 0.0});
@@ -198,10 +199,13 @@ class PuzzleMesh extends StaticTriangleMesh {
 
     render() {
 
+        if(this.alpha === 0.0)
+            return;
+
         let color_loc = gl.getUniformLocation(puzzle_shader.program, 'color');
         gl.uniform3fv(color_loc, this.color);
         
-        if(this.texture_number !== undefined) {
+        if(this.texture_number !== undefined && this.texture_number >= 0) {
             let i = this.texture_number % puzzle_texture_list.length;
             let puzzle_texture = puzzle_texture_list[i];
             let sampler_loc = gl.getUniformLocation(puzzle_shader.program, 'texture');        

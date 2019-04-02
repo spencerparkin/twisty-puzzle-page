@@ -1081,7 +1081,7 @@ class WormHoleBase(PuzzleDefinitionBase):
     def make_generator_mesh_list(self):
         return []
     
-    def make_other_faces(self, inset_only, rotated):
+    def make_other_faces(self, inset_only, rotated, color):
         other_face_mesh_list = []
         
         other_face_mesh_list.append(TriangleMesh().add_quad(
@@ -1097,13 +1097,29 @@ class WormHoleBase(PuzzleDefinitionBase):
             Vector(self.alpha / 2.0, self.alpha / 2.0, 0.0)
         ))
         
+        other_face_mesh_list = [ColoredMesh(mesh=mesh, color=color) for mesh in other_face_mesh_list]
+               
+        if not inset_only:
+            other_face_mesh_list += [AffineTransform().make_translation(Vector(0.0, 0.0, -0.3))(mesh) for mesh in other_face_mesh_list]
+        else:
+            other_face_mesh_list = [AffineTransform().make_translation(Vector(0.0, 0.0, -0.3))(mesh) for mesh in other_face_mesh_list]
+            
+            # These faces are used purely for bandaging.
+            other_face_mesh_list.append(ColoredMesh(mesh=TriangleMesh().add_quad(
+                Vector(-self.alpha / 2.0 - self.beta, 0.0, -0.3),
+                Vector(-self.alpha / 2.0, 0.0, -0.3),
+                Vector(-self.alpha / 2.0, 0.0, 0.0),
+                Vector(-self.alpha / 2.0 - self.beta, 0.0)
+            ), color=Vector(0.5, 0.5, 0.5), alpha=0.0))
+            other_face_mesh_list.append(ColoredMesh(mesh=TriangleMesh().add_quad(
+                Vector(self.alpha / 2.0, 0.0, -0.3),
+                Vector(self.alpha / 2.0 + self.beta, 0.0, -0.3),
+                Vector(self.alpha / 2.0 + self.beta, 0.0, 0.0),
+                Vector(self.alpha / 2.0, 0.0, 0.0)
+            ), color=Vector(0.5, 0.5, 0.5), alpha=0.0))
+            
         if rotated:
             other_face_mesh_list = [LinearTransform().make_rotation(Vector(0.0, 0.0, 1.0), math.pi / 2.0)(mesh) for mesh in other_face_mesh_list]
-        
-        if inset_only:
-            other_face_mesh_list = [AffineTransform().make_translation(Vector(0.0, 0.0, -0.3))(mesh) for mesh in other_face_mesh_list]
-        else:
-            other_face_mesh_list += [AffineTransform().make_translation(Vector(0.0, 0.0, -0.3))(mesh) for mesh in other_face_mesh_list]
         
         return other_face_mesh_list
 
@@ -1217,40 +1233,35 @@ class WormHoleII(WormHoleBase):
     def make_initial_mesh_list(self):
         mesh_list = super().make_initial_mesh_list()
         
-        # TODO: Currently, the puzzle doesn't bandage when it should.  I'm not sure how to fix this.  Some invisible faces might do the trick.
-        #       We would have to add an invisible face that bisects each inset area on each face.  It would take a bit of time, but it's worth a try.
-        
         # red face
-        for mesh in self.make_other_faces(False, False):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_translation(Vector(0.0, 0.0, 1.0))(mesh), color=Vector(1.0, 0.0, 0.0)))
-        for mesh in self.make_other_faces(True, True):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_translation(Vector(0.0, 0.0, 1.0))(mesh), color=Vector(1.0, 0.0, 0.0)))
+        color = Vector(1.0, 0.0, 0.0)
+        for mesh in self.make_other_faces(False, False, color) + self.make_other_faces(True, True, color):
+            mesh_list.append(AffineTransform().make_translation(Vector(0.0, 0.0, 1.0))(mesh))
         
         # orange face
-        for mesh in self.make_other_faces(False, False):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi, Vector(0.0, 0.0, -1.0))(mesh), color=Vector(1.0, 0.5, 0.0)))
-        for mesh in self.make_other_faces(True, True):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi, Vector(0.0, 0.0, -1.0))(mesh), color=Vector(1.0, 0.5, 0.0)))
+        color = Vector(1.0, 0.5, 0.0)
+        for mesh in self.make_other_faces(False, False, color) + self.make_other_faces(True, True, color):
+            mesh_list.append(AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi, Vector(0.0, 0.0, -1.0))(mesh))
 
         # green face
-        for mesh in self.make_other_faces(False, False):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0, Vector(1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 1.0, 0.0)))
-        for mesh in self.make_other_faces(True, True):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0, Vector(1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 1.0, 0.0)))
+        color = Vector(0.0, 1.0, 0.0)
+        for mesh in self.make_other_faces(False, False, color) + self.make_other_faces(True, True, color):
+            mesh_list.append(AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0, Vector(1.0, 0.0, 0.0))(mesh))
         
         # blue face
-        for mesh in self.make_other_faces(False, False):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), -math.pi / 2.0, Vector(-1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 0.0, 1.0)))
-        for mesh in self.make_other_faces(True, True):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), -math.pi / 2.0, Vector(-1.0, 0.0, 0.0))(mesh), color=Vector(0.0, 0.0, 1.0)))
+        color = Vector(0.0, 0.0, 1.0)
+        for mesh in self.make_other_faces(False, False, color) + self.make_other_faces(True, True, color):
+            mesh_list.append(AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), -math.pi / 2.0, Vector(-1.0, 0.0, 0.0))(mesh))
         
         # yellow face
-        for mesh in self.make_other_faces(True, False) + self.make_other_faces(True, True):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), -math.pi / 2.0, Vector(0.0, 1.0, 0.0))(mesh), color=Vector(1.0, 1.0, 0.0)))
+        color = Vector(1.0, 1.0, 0.0)
+        for mesh in self.make_other_faces(True, False, color) + self.make_other_faces(True, True, color):
+            mesh_list.append(AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), -math.pi / 2.0, Vector(0.0, 1.0, 0.0))(mesh))
         
         # white face
-        for mesh in self.make_other_faces(True, False) + self.make_other_faces(True, True):
-            mesh_list.append(ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi / 2.0, Vector(0.0, -1.0, 0.0))(mesh), color=Vector(1.0, 1.0, 1.0)))
+        color = Vector(1.0, 1.0, 1.0)
+        for mesh in self.make_other_faces(True, False, color) + self.make_other_faces(True, True, color):
+            mesh_list.append(AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi / 2.0, Vector(0.0, -1.0, 0.0))(mesh))
         
         # hidden face (for core logic)
         mesh = TriangleMesh().add_triangle(Triangle(

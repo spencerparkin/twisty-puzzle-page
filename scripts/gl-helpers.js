@@ -151,7 +151,7 @@ class StaticTriangleMesh {
             vertex_buffer_list.push(vertex['x']);
             vertex_buffer_list.push(vertex['y']);
             vertex_buffer_list.push(vertex['z']);
-            if(uv_list) {
+            if(uv_list && uv_list.length === vertex_list.length) {
                 let uv = uv_list[i];
                 vertex_buffer_list.push(uv['x']);
                 vertex_buffer_list.push(uv['y']);

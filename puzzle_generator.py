@@ -23,7 +23,7 @@ class ColoredMesh(TriangleMesh):
         self.texture_number = -1
 
     def clone(self):
-        return ColoredMesh(mesh=super().clone(), color=self.color.clone())
+        return ColoredMesh(mesh=super().clone(), color=self.color.clone(), alpha=self.alpha)
 
     def to_dict(self):
         data = super().to_dict()
@@ -269,6 +269,8 @@ class PuzzleDefinitionBase(object):
         # Determine all texture planes and assign a list of meshes to each plane.
         plane_list = []
         for face_mesh in final_mesh_list:
+            if face_mesh.alpha == 0.0:
+                continue
             new_plane = TexturePlane(PointCloud(face_mesh.vertex_list).fit_plane(), face_mesh)
             for i, plane in enumerate(plane_list):
                 if new_plane.is_parallel_with(plane):
