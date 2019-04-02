@@ -36,6 +36,9 @@
             <span class="first_column">History:</span>
             <span class="second_column"><button data-bind="click: undoClicked, enable: undo_move_list().length > 0">Undo</button><button data-bind="click: redoClicked, enable: redo_move_list().length > 0">Redo</button></span>
             
+            <span class="first_column">Saved States:</span>
+            <span class="second_column"><button data-bind="click: saveClicked">Save</button><button data-bind="click: restoreClicked">Restore</button></span>
+            
             <span class="first_column">Sequence:</span>
             <span class="second_column"><input data-bind="value: sequence_text" id="puzzle_sequence_textbox"/><button data-bind="click: executeSequenceClicked">Execute</button></span>
         </div>

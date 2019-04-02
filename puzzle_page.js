@@ -82,6 +82,43 @@ var ViewModel = function() {
         this.clear_undo_list();
         this.clear_move_queue();
     }
+    
+    this.grab_saved_state_map = function() {
+        let saved_state_map = {};
+        let saved_state_map_str = localStorage.getItem(puzzle.name);
+        if(saved_state_map_str)
+            saved_state_map = JSON.parse(saved_state_map_str);
+        return saved_state_map;
+    }
+    
+    this.saveClicked = function() {
+        name = prompt('Save current puzzle state under what name?', '');
+        if(name) {
+            let saved_state_map = this.grab_saved_state_map();
+            if(!(name in saved_state_map) || confirm('Overwrite existing state?')) {
+                saved_state_map[name] = puzzle.get_permutation_state();
+                saved_state_map_str = JSON.stringify(saved_state_map);
+                localStorage.setItem(puzzle.name, saved_state_map_str);
+            }
+        }
+    }
+    
+    this.restoreClicked = function() {
+        name = prompt('Load puzzle state using what name?', '');
+        if(name) {
+            let saved_state_map = this.grab_saved_state_map();
+            if(!(name in saved_state_map)) {
+                alert('There is no puzzle state under the name "' + name + '" for the puzzle type in question.');
+            } else {
+                try {
+                    puzzle.set_permutation_state(saved_state_map[name]);
+                    render_scene();
+                } catch(error) {
+                    alert('Error: ' + error);
+                }
+            }
+        }
+    }
 }
 
 function random_int(min_int, max_int) {
@@ -348,6 +385,27 @@ class Puzzle {
         this.orient_matrix = mat4.create();
         this.selected_generator = -1;
         this.bandages = false;
+    }
+    
+    get_permutation_state() {
+        let permutation_list = [];
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            let matrix_array = [];
+            for(let j = 0; j < 16; j++)
+                matrix_array.push(mesh.permutation_transform[j]);
+            permutation_list.push(matrix_array);
+        }
+        return permutation_list;
+    }
+    
+    set_permutation_state(permutation_list) {
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            let matrix_array = permutation_list[i];
+            for(let j = 0; j < 16; j++)
+                mesh.permutation_transform[j] = matrix_array[j];
+        }
     }
     
     release() {
