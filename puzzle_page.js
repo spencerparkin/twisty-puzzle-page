@@ -96,6 +96,7 @@ var ViewModel = function() {
         if(name) {
             let saved_state_map = this.grab_saved_state_map();
             if(!(name in saved_state_map) || confirm('Overwrite existing state?')) {
+                // TODO: Also save undo/redo history?
                 saved_state_map[name] = puzzle.get_permutation_state();
                 saved_state_map_str = JSON.stringify(saved_state_map);
                 localStorage.setItem(puzzle.name, saved_state_map_str);
