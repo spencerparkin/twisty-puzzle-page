@@ -3,6 +3,7 @@
 import argparse
 import sys
 import json
+import math
 
 sys.path.append(r'c:\dev\pyMath3d')
 
@@ -222,7 +223,7 @@ class PuzzleDefinitionBase(object):
     def generate_puzzle_file(self):
         final_mesh_list, initial_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
         
-        self.calculate_uvs(final_mesh_list, initial_mesh_list)
+        self.calculate_uvs(final_mesh_list)
         self.calculate_normals(final_mesh_list)
         
         puzzle_data = {
@@ -240,31 +241,74 @@ class PuzzleDefinitionBase(object):
         
         return puzzle_path
 
-    def calculate_uvs(self, final_mesh_list, initial_mesh_list):
-        for i, mesh in enumerate(initial_mesh_list):
-            print('Calculating UVs for mesh %d...' % i)
-            plane = PointCloud(mesh.vertex_list).fit_plane()
-            if plane.center.dot(plane.unit_normal) < 0.0:
-                plane.unit_normal = -plane.unit_normal
-            x_axis = plane.unit_normal.perpendicular_vector().normalized()
-            y_axis = plane.unit_normal.cross(x_axis)
-            z_axis = plane.unit_normal.clone()
-            transform = AffineTransform(x_axis=x_axis, y_axis=y_axis, z_axis=z_axis, translation=plane.center)
-            inverse_transform = transform.calc_inverse()
+    def calculate_uvs(self, final_mesh_list):
+        
+        class TexturePlane(object):
+            def __init__(self, plane, mesh):
+                if plane.center.dot(plane.unit_normal) < 0.0:
+                    plane.unit_normal = -plane.unit_normal
+                self.plane = plane
+                self.mesh_list = [mesh]
+        
+            def is_parallel_with(self, other, eps=1e-7):
+                angle = math.acos(self.plane.unit_normal.dot(other.plane.unit_normal))
+                return math.fabs(angle) < eps
+        
+            def is_further_than(self, other):
+                return self.plane.center.length() > other.plane.center.length()
+        
+            def make_texture_space_transform(self):
+                # TODO: Make sure Y-axis is as close to actual Y-axis as possible.
+                x_axis = self.plane.unit_normal.perpendicular_vector().normalized()
+                y_axis = self.plane.unit_normal.cross(x_axis)
+                z_axis = self.plane.unit_normal.clone()
+                transform = AffineTransform(x_axis=x_axis, y_axis=y_axis, z_axis=z_axis, translation=self.plane.center)
+                inverse_transform = transform.calc_inverse()
+                return inverse_transform
+        
+        # Determine all texture planes and assign a list of meshes to each plane.
+        plane_list = []
+        for face_mesh in final_mesh_list:
+            new_plane = TexturePlane(PointCloud(face_mesh.vertex_list).fit_plane(), face_mesh)
+            for i, plane in enumerate(plane_list):
+                if new_plane.is_parallel_with(plane):
+                    if new_plane.is_further_than(plane):
+                        new_plane.mesh_list += plane.mesh_list
+                        plane_list[i] = new_plane
+                    else:
+                        plane.mesh_list += new_plane.mesh_list
+                    break
+            else:
+                plane_list.append(new_plane)
+        
+        # Process each texture plane.
+        for i, plane in enumerate(plane_list):
+            
+            # Assign a texture number to all meshes associated with the plane.
+            for face_mesh in plane.mesh_list:
+                face_mesh.texture_number = i
+            
+            # Make the transform taking us from model space to texture space.
+            texture_transform = plane.make_texture_space_transform()
+
+            # Calculate the extents of the texture space.
             x_min = 1000.0
             x_max = -1000.0
             y_min = 1000.0
             y_max = -1000.0
-            vertex_list = [inverse_transform(vertex) for vertex in mesh.vertex_list]
-            for vertex in vertex_list:
-                if vertex.x < x_min:
-                    x_min = vertex.x
-                if vertex.x > x_max:
-                    x_max = vertex.x
-                if vertex.y < y_min:
-                    y_min = vertex.y
-                if vertex.y > y_max:
-                    y_max = vertex.y
+            for face_mesh in plane.mesh_list:
+                vertex_list = [texture_transform(vertex) for vertex in face_mesh.vertex_list]
+                for vertex in vertex_list:
+                    if vertex.x < x_min:
+                        x_min = vertex.x
+                    if vertex.x > x_max:
+                        x_max = vertex.x
+                    if vertex.y < y_min:
+                        y_min = vertex.y
+                    if vertex.y > y_max:
+                        y_max = vertex.y
+            
+            # Fix the aspect ratio of those extents so that the texture is not distorted.
             x_delta = x_max - x_min
             y_delta = y_max - y_min
             if x_delta > y_delta:
@@ -275,16 +319,15 @@ class PuzzleDefinitionBase(object):
                 delta = (y_delta - x_delta) * 0.5
                 x_min -= delta
                 x_max += delta
-            for face_mesh in final_mesh_list:
-                center = face_mesh.calc_center()
-                if plane.side(center, eps=1e-4) == Side.NEITHER:
-                    face_mesh.texture_number = i
-                    face_mesh.uv_list = []
-                    vertex_list = [inverse_transform(vertex) for vertex in face_mesh.vertex_list]
-                    for vertex in vertex_list:
-                        u = (vertex.x - x_min) / (x_max - x_min)
-                        v = (vertex.y - y_min) / (y_max - y_min)
-                        face_mesh.uv_list.append(Vector(u, v, 0.0))
+            
+            # Finally, go assign texture coordinates to each face mesh vertex.
+            for face_mesh in plane.mesh_list:
+                face_mesh.uv_list = []
+                vertex_list = [texture_transform(vertex) for vertex in face_mesh.vertex_list]
+                for vertex in vertex_list:
+                    u = (vertex.x - x_min) / (x_max - x_min)
+                    v = (vertex.y - y_min) / (y_max - y_min)
+                    face_mesh.uv_list.append(Vector(u, v, 0.0))
 
     def calculate_normals(self, final_mesh_list):
         for mesh in final_mesh_list:
