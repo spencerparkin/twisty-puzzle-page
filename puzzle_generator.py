@@ -185,6 +185,7 @@ class PuzzleDefinitionBase(object):
                         if len(front_mesh.triangle_list) > 0:
                             new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
                     final_mesh_list = new_mesh_list
+                    # TODO: Would we get a speed boost if we reduced the meshes as we go along?  Give it a try.
 
             # Cull meshes with area below a certain threshold to eliminate some artifacting.
             i = 0
