@@ -251,7 +251,9 @@ class PuzzleDefinitionBase(object):
                 self.mesh_list = [mesh]
         
             def is_parallel_with(self, other, eps=1e-7):
-                angle = math.acos(self.plane.unit_normal.dot(other.plane.unit_normal))
+                dot = self.plane.unit_normal.dot(other.plane.unit_normal)
+                dot = min(max(dot, -1.0), 1.0)
+                angle = math.acos(dot)
                 return math.fabs(angle) < eps
         
             def is_further_than(self, other):
