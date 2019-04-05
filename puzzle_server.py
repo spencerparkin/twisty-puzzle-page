@@ -11,6 +11,12 @@ class PuzzleServer(object):
     @cherrypy.expose
     def default(self, **kwargs):
         return cherrypy.lib.static.serve_file(self.root_dir + '/puzzle_page.html', content_type='text/html')
+    
+    @cherrypy.expose
+    def puzzle(self, **kwargs):
+        name = kwargs['name']
+        cherrypy.response.headers['Content-Encoding'] = 'gzip'
+        return cherrypy.lib.static.serve_file(self.root_dir + '/puzzles/%s.json.gz' % name, content_type='json')
 
 if __name__ == '__main__':
     root_dir = os.path.dirname(os.path.abspath(__file__))

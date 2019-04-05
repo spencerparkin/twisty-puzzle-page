@@ -426,7 +426,8 @@ class Puzzle {
     promise() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: 'puzzles/' + this.name + '.json',
+                url: 'puzzle',
+                data: {'name': this.name},
                 dataType: 'json',
                 success: puzzle_data => {
                     if('error' in puzzle_data) {
@@ -450,8 +451,8 @@ class Puzzle {
                         resolve();
                     }
                 },
-                failure: error => {
-                    alert(error);
+                error: function(request, status, error) {
+                    alert('Error: ' + error);
                     reject();
                 }
             });
@@ -880,7 +881,7 @@ function document_ready() {
 	    gl.enable(gl.DEPTH_TEST);
 	    gl.enable(gl.BLEND);
 	    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-	    gl.enable(gl.CULL_FACE);
+	    gl.disable(gl.CULL_FACE);   // For shape-shifting puzzles, we need to render back-faces.
 	    
 	    $('#loading_gif').show();
 	    

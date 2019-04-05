@@ -3,6 +3,7 @@
 import argparse
 import sys
 import json
+import gzip
 
 sys.path.append(r'c:\dev\pyMath3d')
 
@@ -21,19 +22,15 @@ class PuzzlePreview(object):
         from puzzle_generator import ColoredMesh
 
         self.mesh_list = []
-        puzzle_path = 'puzzles/' + puzzle_class_name + '.json'
-        with open(puzzle_path, 'r') as handle:
-            json_text = handle.read()
+        puzzle_path = 'puzzles/' + puzzle_class_name + '.json.gz'
+        with gzip.open(puzzle_path, 'rb') as handle:
+            json_bytes = handle.read()
+            json_text = json_bytes.decode('utf-8')
             puzzle_data = json.loads(json_text)
             for mesh_data in puzzle_data.get('mesh_list', []):
                 mesh = ColoredMesh().from_dict(mesh_data)
+                mesh.border_loop = mesh_data.get('border_loop', mesh.calc_border_loop())
                 self.mesh_list.append(mesh)
-
-        self.line_loop_list = []
-        #for mesh in self.mesh_list:
-        #    loop_list = mesh.find_boundary_loops()
-        #    for loop in loop_list:
-        #        self.line_loop_list.append([mesh.vertex_list[i] for i in loop])
 
     def render(self):
         glEnable(GL_LIGHTING)
@@ -43,12 +40,15 @@ class PuzzlePreview(object):
 
         glDisable(GL_LIGHTING)
 
-        for line_loop in self.line_loop_list:
-            glColor3f(0.0, 0.0, 0.0)
+        for mesh in self.mesh_list:
+            scale = 1.001
+            glColor3f(1.0, 1.0, 1.0)
             glLineWidth(2.0)
             glBegin(GL_LINE_LOOP)
             try:
-                for point in line_loop:
+                for i in mesh.border_loop:
+                    point = mesh.vertex_list[i].clone()
+                    point *= scale
                     glVertex3f(point.x, point.y, point.z)
             finally:
                 glEnd()

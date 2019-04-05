@@ -4,6 +4,7 @@ import argparse
 import sys
 import json
 import math
+import gzip
 
 sys.path.append(r'c:\dev\pyMath3d')
 
@@ -43,7 +44,7 @@ class ColoredMesh(TriangleMesh):
         self.texture_number = data.get('texture_number', -1)
         return self
     
-    def render(self):
+    def render(self, random_colors=False):
         from OpenGL.GL import glMaterialfv, GL_FRONT, GL_SPECULAR, GL_SHININESS, GL_AMBIENT, GL_DIFFUSE
 
         glMaterialfv(GL_FRONT, GL_SPECULAR, [1.0, 1.0, 1.0, 1.0])
@@ -51,21 +52,13 @@ class ColoredMesh(TriangleMesh):
         glMaterialfv(GL_FRONT, GL_AMBIENT, [self.color.x * 0.3, self.color.y * 0.3, self.color.z * 0.3, 1.0])
         glMaterialfv(GL_FRONT, GL_DIFFUSE, [self.color.x, self.color.y, self.color.z, 1.0])
         
-        super().render()
-
-    def scale(self, scale_factor, center=None):
-        if center is None:
-            # Hmmm...this wont' quite work for concave shapes.
-            center = super().calc_center()
-        for i, vertex in enumerate(self.vertex_list):
-            vector = vertex - center
-            vector = vector * scale_factor
-            self.vertex_list[i] = center + vector
+        super().render(random_colors=random_colors)
 
     def calc_center(self):
         # For our purposes, this doesn't have to be an interior point that best represents
         # the center of the mesh (although I wish I had a good idea of how to calculate that.)
         # It just needs to be any interior point, but one furthest from the edge, if possible.
+        # Of course, for convex shapes, this is easy, but not for concave shapes.
         largest_area = 0.0
         best_triangle = None
         for triangle in self.yield_triangles():
@@ -74,6 +67,15 @@ class ColoredMesh(TriangleMesh):
                 largest_area = area
                 best_triangle = triangle
         return best_triangle.calc_center()
+
+    def calc_border_loop(self):
+        try:
+            line_loop_list = self.find_boundary_loops()
+        except:
+            return None
+        if len(line_loop_list) != 1:
+            return None
+        return line_loop_list[0]
 
 class GeneratorMesh(TriangleMesh):
     def __init__(self, mesh=None, center=None, axis=None, angle=None, pick_point=None):
@@ -204,14 +206,7 @@ class PuzzleDefinitionBase(object):
             
             cut_pass += 1
 
-        # This gives each face a sense that it has a border.
-        for mesh in final_mesh_list:
-            self.shrink_mesh(mesh)
-
         return final_mesh_list, initial_mesh_list, generator_mesh_list
-
-    def shrink_mesh(self, mesh, center=None):
-        mesh.scale(0.95, center=center)
     
     def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
         return False
@@ -228,17 +223,18 @@ class PuzzleDefinitionBase(object):
         self.calculate_normals(final_mesh_list)
         
         puzzle_data = {
-            'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
+            'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict(), 'border_loop': mesh.calc_border_loop()} for mesh in final_mesh_list],
             'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list],
             'bandages': self.bandages()
         }
 
         self.annotate_puzzle_data(puzzle_data)
 
-        puzzle_path = 'puzzles/' + self.__class__.__name__ + '.json'
-        with open(puzzle_path, 'w') as handle:
+        puzzle_path = 'puzzles/' + self.__class__.__name__ + '.json.gz'
+        with gzip.open(puzzle_path, 'wb') as handle:
             json_text = json.dumps(puzzle_data, indent=4, separators=(',', ': '), sort_keys=True)
-            handle.write(json_text)
+            json_bytes = json_text.encode('utf-8')
+            handle.write(json_bytes)
         
         return puzzle_path
 
