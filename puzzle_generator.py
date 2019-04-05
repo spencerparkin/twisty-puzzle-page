@@ -5,6 +5,7 @@ import sys
 import json
 import math
 import gzip
+import datetime
 
 sys.path.append(r'c:\dev\pyMath3d')
 
@@ -122,6 +123,21 @@ class GeneratorMesh(TriangleMesh):
         transform = AffineTransform().make_rotation(self.axis, -self.angle if not inverse else self.angle, center=self.center)
         return transform(mesh)
 
+class ProfileBlock(object):
+    def __init__(self, label):
+        self.label = label
+        self.start_time = None
+
+    def __enter__(self):
+        self.start_time = datetime.datetime.now()
+        return self
+
+    def __exit__(self, type, exc, tb):
+        stop_time = datetime.datetime.now()
+        delta_time = stop_time - self.start_time
+        total_seconds = delta_time.total_seconds()
+        print('%s: %f seconds' % (self.label, total_seconds))
+
 class PuzzleDefinitionBase(object):
     def __init__(self):
         pass
@@ -187,7 +203,9 @@ class PuzzleDefinitionBase(object):
                         if len(front_mesh.triangle_list) > 0:
                             new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
                     final_mesh_list = new_mesh_list
-                    # TODO: Would we get a speed boost if we reduced the meshes as we go along?  Give it a try.
+                    # This is an optimization in terms of both time and memory.  Note that it is not needed for correctness.
+                    for mesh in final_mesh_list:
+                        mesh.reduce()
 
             # Cull meshes with area below a certain threshold to eliminate some artifacting.
             i = 0
@@ -217,24 +235,29 @@ class PuzzleDefinitionBase(object):
                 mesh_list[i] = generator_mesh.transform_mesh(mesh, inverse)
     
     def generate_puzzle_file(self):
-        final_mesh_list, initial_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
+        with ProfileBlock('Generate meshes'):
+            final_mesh_list, initial_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
         
-        self.calculate_uvs(final_mesh_list)
-        self.calculate_normals(final_mesh_list)
+        with ProfileBlock('Calculate UVs'):
+            self.calculate_uvs(final_mesh_list)
         
-        puzzle_data = {
-            'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict(), 'border_loop': mesh.calc_border_loop()} for mesh in final_mesh_list],
-            'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list],
-            'bandages': self.bandages()
-        }
+        with ProfileBlock('Calculate normals'):
+            self.calculate_normals(final_mesh_list)
+        
+        with ProfileBlock('Make puzzle data'):
+            puzzle_data = {
+                'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict(), 'border_loop': mesh.calc_border_loop()} for mesh in final_mesh_list],
+                'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list],
+                'bandages': self.bandages()
+            }
+            self.annotate_puzzle_data(puzzle_data)
 
-        self.annotate_puzzle_data(puzzle_data)
-
-        puzzle_path = 'puzzles/' + self.__class__.__name__ + '.json.gz'
-        with gzip.open(puzzle_path, 'wb') as handle:
-            json_text = json.dumps(puzzle_data, indent=4, separators=(',', ': '), sort_keys=True)
-            json_bytes = json_text.encode('utf-8')
-            handle.write(json_bytes)
+        with ProfileBlock('Make puzzle file'):
+            puzzle_path = 'puzzles/' + self.__class__.__name__ + '.json.gz'
+            with gzip.open(puzzle_path, 'wb') as handle:
+                json_text = json.dumps(puzzle_data, indent=4, separators=(',', ': '), sort_keys=True)
+                json_bytes = json_text.encode('utf-8')
+                handle.write(json_bytes)
         
         return puzzle_path
 
