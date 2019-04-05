@@ -29,7 +29,7 @@ class PuzzlePreview(object):
             puzzle_data = json.loads(json_text)
             for mesh_data in puzzle_data.get('mesh_list', []):
                 mesh = ColoredMesh().from_dict(mesh_data)
-                mesh.border_loop = mesh_data.get('border_loop', mesh.calc_border_loop())
+                mesh.border_loop = mesh_data.get('border_loop', [])
                 self.mesh_list.append(mesh)
 
     def render(self):
