@@ -55,6 +55,22 @@ class ColoredMesh(TriangleMesh):
         
         super().render(random_colors=random_colors)
 
+    def render_border(self):
+        from OpenGL.GL import glColor3f, glLineWidth, glBegin, glEnd, glVertex3f, GL_LINE_LOOP
+        
+        if self.border_loop is not None:
+            scale = 1.001
+            glColor3f(1.0, 1.0, 1.0)
+            glLineWidth(2.0)
+            glBegin(GL_LINE_LOOP)
+            try:
+                for i in self.border_loop:
+                    point = self.vertex_list[i].clone()
+                    point *= scale
+                    glVertex3f(point.x, point.y, point.z)
+            finally:
+                glEnd()
+
     def calc_center(self):
         # For our purposes, this doesn't have to be an interior point that best represents
         # the center of the mesh (although I wish I had a good idea of how to calculate that.)

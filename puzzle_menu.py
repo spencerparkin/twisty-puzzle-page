@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import gzip
 
 sys.path.append(r'c:\dev\pyMath3d')
 
@@ -20,7 +21,6 @@ class Window(QtGui.QOpenGLWindow):
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.0, 0.0, 0.0, 0.0)
 
-        glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
 
         glShadeModel(GL_SMOOTH)
@@ -44,25 +44,28 @@ class Window(QtGui.QOpenGLWindow):
             for file in file_list:
                 puzzle_file = os.path.join(root, file)
                 print('Processing %s...' % puzzle_file)
-                with open(puzzle_file, 'r') as handle:
-                    json_text = handle.read()
+                with gzip.open(puzzle_file, 'rb') as handle:
+                    json_bytes = handle.read()
+                    json_text = json_bytes.decode('utf-8')
                     puzzle_data = json.loads(json_text)
                     
                     mesh_list = []
                     for mesh_data in puzzle_data.get('mesh_list', []):
                         mesh = ColoredMesh().from_dict(mesh_data)
+                        mesh.border_loop = mesh_data.get('border_loop', [])
                         mesh_list.append(mesh)
                     
                     self._render_puzzle(mesh_list)
                     
                     image = self.grabFramebuffer()
                     name, ext = os.path.splitext(file)
+                    name, ext = os.path.splitext(name)
                     image_file = 'images/' + name + '.png'
                     image.save(os.getcwd() + '/' + image_file)
                     
                     puzzle_menu_data.append({
-                        'puzzle_name': os.path.splitext(file)[0],
-                        'puzzle_label': puzzle_data.get('label', os.path.splitext(file)[0]),
+                        'puzzle_name': name,
+                        'puzzle_label': puzzle_data.get('label', name),
                         'puzzle_icon': image_file
                     })
         
@@ -96,10 +99,13 @@ class Window(QtGui.QOpenGLWindow):
         glRotatef(orient.y, 0.0, 1.0, 0.0)
         glRotatef(orient.z, 0.0, 0.0, 1.0)
 
+        glEnable(GL_LIGHTING)
         for mesh in mesh_list:
             mesh.render()
 
-        # TODO: Render borders with anti-aliasing.
+        glDisable(GL_LIGHTING)
+        for mesh in mesh_list:
+            mesh.render_border()        # TODO: Add anti-aliasing.
 
         glPopMatrix()
 

@@ -41,17 +41,7 @@ class PuzzlePreview(object):
         glDisable(GL_LIGHTING)
 
         for mesh in self.mesh_list:
-            scale = 1.001
-            glColor3f(1.0, 1.0, 1.0)
-            glLineWidth(2.0)
-            glBegin(GL_LINE_LOOP)
-            try:
-                for i in mesh.border_loop:
-                    point = mesh.vertex_list[i].clone()
-                    point *= scale
-                    glVertex3f(point.x, point.y, point.z)
-            finally:
-                glEnd()
+            mesh.render_border()
 
 class PreviewWindow(QtGui.QOpenGLWindow):
     def __init__(self, puzzle_class_name, parent=None):
