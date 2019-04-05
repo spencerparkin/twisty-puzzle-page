@@ -99,6 +99,8 @@ class Window(QtGui.QOpenGLWindow):
         for mesh in mesh_list:
             mesh.render()
 
+        # TODO: Render borders with anti-aliasing.
+
         glPopMatrix()
 
         glFlush()
