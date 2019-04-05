@@ -24,6 +24,7 @@ class Window(QtGui.QOpenGLWindow):
         glEnable(GL_LIGHT0)
 
         glShadeModel(GL_SMOOTH)
+        glEnable(GL_LINE_SMOOTH)
 
         glLightfv(GL_LIGHT0, GL_POSITION, [1.0, 1.0, 1.0, 0.0])
         glLightfv(GL_LIGHT0, GL_AMBIENT, [1.0, 1.0, 1.0, 1.0])
@@ -52,7 +53,6 @@ class Window(QtGui.QOpenGLWindow):
                     mesh_list = []
                     for mesh_data in puzzle_data.get('mesh_list', []):
                         mesh = ColoredMesh().from_dict(mesh_data)
-                        mesh.border_loop = mesh_data.get('border_loop', [])
                         mesh_list.append(mesh)
                     
                     self._render_puzzle(mesh_list)
@@ -101,11 +101,13 @@ class Window(QtGui.QOpenGLWindow):
 
         glEnable(GL_LIGHTING)
         for mesh in mesh_list:
-            mesh.render()
+            if mesh.alpha > 0.0:
+                mesh.render()
 
         glDisable(GL_LIGHTING)
         for mesh in mesh_list:
-            mesh.render_border()        # TODO: Add anti-aliasing.
+            if mesh.alpha > 0.0:
+                mesh.render_border()
 
         glPopMatrix()
 

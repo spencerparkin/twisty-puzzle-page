@@ -23,6 +23,7 @@ class ColoredMesh(TriangleMesh):
         self.uv_list = []
         self.normal_list = []
         self.texture_number = -1
+        self.border_loop = []
 
     def clone(self):
         return ColoredMesh(mesh=super().clone(), color=self.color.clone(), alpha=self.alpha)
@@ -34,6 +35,7 @@ class ColoredMesh(TriangleMesh):
         data['uv_list'] = [uv.to_dict() for uv in self.uv_list]
         data['normal_list'] = [normal.to_dict() for normal in self.normal_list]
         data['texture_number'] = self.texture_number
+        data['border_loop'] = self.border_loop
         return data
 
     def from_dict(self, data):
@@ -43,6 +45,7 @@ class ColoredMesh(TriangleMesh):
         self.uv_list = [Vector().from_dict(uv) for uv in data.get('uv_list', [])]
         self.normal_list = [Vector().from_dict(normal) for normal in data.get('normal_list', [])]
         self.texture_number = data.get('texture_number', -1)
+        self.border_loop = data.get('border_loop', [])
         return self
     
     def render(self, random_colors=False):
@@ -60,13 +63,13 @@ class ColoredMesh(TriangleMesh):
         
         if self.border_loop is not None:
             scale = 1.001
-            glColor3f(1.0, 1.0, 1.0)
-            glLineWidth(2.0)
+            glColor3f(0.0, 0.0, 0.0)
+            glLineWidth(4.0)
             glBegin(GL_LINE_LOOP)
             try:
                 for i in self.border_loop:
                     point = self.vertex_list[i].clone()
-                    point *= scale
+                    point *= scale      # This idea won't work in all cases.
                     glVertex3f(point.x, point.y, point.z)
             finally:
                 glEnd()
@@ -86,13 +89,14 @@ class ColoredMesh(TriangleMesh):
         return best_triangle.calc_center()
 
     def calc_border_loop(self):
+        self.border_loop = []
         try:
             line_loop_list = self.find_boundary_loops()
         except:
-            return None
-        if len(line_loop_list) != 1:
-            return None
-        return line_loop_list[0]
+            pass    # Eat exceptions for now.  I still have some debugging to do here.
+        else:
+            if len(line_loop_list) == 1:
+                self.border_loop = line_loop_list[0]
 
 class GeneratorMesh(TriangleMesh):
     def __init__(self, mesh=None, center=None, axis=None, angle=None, pick_point=None):
@@ -260,15 +264,17 @@ class PuzzleDefinitionBase(object):
         with ProfileBlock('Calculate normals'):
             self.calculate_normals(final_mesh_list)
         
-        with ProfileBlock('Make puzzle data'):
+        with ProfileBlock('Calculate border loops'):
+            for mesh in final_mesh_list:
+                mesh.calc_border_loop()
+        
+        with ProfileBlock('Make puzzle file'):
             puzzle_data = {
-                'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict(), 'border_loop': mesh.calc_border_loop()} for mesh in final_mesh_list],
+                'mesh_list': [{**mesh.to_dict(), 'center': mesh.calc_center().to_dict()} for mesh in final_mesh_list],
                 'generator_mesh_list': [{**mesh.to_dict(), 'plane_list': mesh.make_plane_list()} for mesh in generator_mesh_list],
                 'bandages': self.bandages()
             }
             self.annotate_puzzle_data(puzzle_data)
-
-        with ProfileBlock('Make puzzle file'):
             puzzle_path = 'puzzles/' + self.__class__.__name__ + '.json.gz'
             with gzip.open(puzzle_path, 'wb') as handle:
                 json_text = json.dumps(puzzle_data, indent=4, separators=(',', ': '), sort_keys=True)

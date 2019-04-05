@@ -29,11 +29,6 @@ class PuzzlePreview(object):
             puzzle_data = json.loads(json_text)
             for mesh_data in puzzle_data.get('mesh_list', []):
                 mesh = ColoredMesh().from_dict(mesh_data)
-                mesh.border_loop = mesh_data.get('border_loop')
-                if mesh.border_loop is None:
-                    # Oddly, putting this as the 2nd argument of the "get" call doesn't work,
-                    # because it always replaces whatever is already in the dictionary.  Why?
-                    mesh.border_loop = mesh.calc_border_loop()
                 self.mesh_list.append(mesh)
 
     def render(self):
