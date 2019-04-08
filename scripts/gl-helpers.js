@@ -167,16 +167,27 @@ class StaticTriangleMesh {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
 
-        if(this.uv_list && this.uv_list.length > 0) {
-            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 20, 0);
-            gl.vertexAttribPointer(uv_loc, 2, gl.FLOAT, false, 20, 12);
-            gl.enableVertexAttribArray(uv_loc);
+        let stride = 0;
+
+        if(this.vertex_list && this.vertex_list.length > 0)
+            stride += 3 * 4;
+
+        if(this.uv_list && this.uv_list.length > 0)
+            stride += 2 * 4;
+
+        if(this.vertex_list && this.vertex_list.length > 0) {
+            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, stride, 0);
+            gl.enableVertexAttribArray(vertex_loc);
         } else {
-            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
-            gl.disableVertexAttribArray(uv_loc);
+            gl.disableVertexAttribArray(vertex_loc);
         }
 
-        gl.enableVertexAttribArray(vertex_loc);
+        if(this.uv_list && this.uv_list.length > 0) {
+            gl.vertexAttribPointer(uv_loc, 2, gl.FLOAT, false, stride, 12);
+            gl.enableVertexAttribArray(uv_loc);
+        } else {
+            gl.disableVertexAttribArray(uv_loc);
+        }
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
         gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
