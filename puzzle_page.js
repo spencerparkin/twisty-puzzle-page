@@ -330,13 +330,13 @@ class PuzzleMesh extends StaticTriangleMesh {
         return generator.contains_point(transformed_center);
     }
     
-    straddles_generator(generator) {
+    straddles_generator(generator, eps=1e-7) {
         let found_inside = false;
         let found_outside = false;
         for(let i = 0; i < this.vertex_list.length; i++) {
             let vertex = vec3_create(this.vertex_list[i]);
             vec3.transformMat4(vertex, vertex, this.permutation_transform);
-            let side = generator.calc_side(vertex, 1e-7);
+            let side = generator.calc_side(vertex, eps);
             if(side === 'inside')
                 found_inside = true;
             else if(side === 'outside')
@@ -674,9 +674,12 @@ class Puzzle {
     }
 
     generator_constrained(generator) {
+        let eps = 1e-7;
+        if(this.name === 'PentacleCube')
+            eps = 1e-1;
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
-            if(mesh.straddles_generator(generator))
+            if(mesh.straddles_generator(generator, eps))
                 return true;
         }
         return false;
