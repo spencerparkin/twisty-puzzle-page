@@ -207,7 +207,7 @@ function mat4_rotate_about_center(result, center, axis, angle) {
 class PuzzleMesh extends StaticTriangleMesh {
     constructor(mesh_data) {
         super();
-        this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list);
+        this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list, mesh_data.normal_list);
         this.texture_number = mesh_data.texture_number;
         this.color = vec3_create(mesh_data.color);
         this.alpha = mesh_data.alpha;
@@ -268,8 +268,9 @@ class PuzzleMesh extends StaticTriangleMesh {
 
         let vertex_loc = gl.getAttribLocation(puzzle_shader.program, 'vertex');
         let uv_loc = gl.getAttribLocation(puzzle_shader.program, 'vertexUVs');
+        let normal_loc = gl.getAttribLocation(puzzle_shader.program, 'vertexNormals');
         
-        super.render(vertex_loc, uv_loc);
+        super.render(vertex_loc, uv_loc, normal_loc);
     }
 
     is_captured_by_generator(generator) {

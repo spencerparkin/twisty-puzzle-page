@@ -2,8 +2,10 @@
 
 attribute vec3 vertex;
 attribute vec2 vertexUVs;
+attribute vec3 vertexNormals;
 
 varying vec2 fragUVs;
+varying vec3 fragNormals;
 
 uniform mat4 transform_matrix;
 uniform mat4 permutation_transform_matrix;
@@ -12,6 +14,7 @@ uniform mat4 animation_transform_matrix;
 void main()
 {
     fragUVs = vertexUVs;
+    fragNormals = vertexNormals;
 
     gl_Position = transform_matrix * animation_transform_matrix * permutation_transform_matrix * vec4(vertex, 1.0);
 }

@@ -103,7 +103,6 @@ class Texture {
     }
 }
 
-// TODO: What about lighting normals?
 class StaticTriangleMesh {
     constructor() {
         this.index_buffer = undefined;
@@ -111,6 +110,7 @@ class StaticTriangleMesh {
         this.triangle_list = [];
         this.vertex_list = [];
         this.uv_list = [];
+        this.normal_list = [];
     }
     
     release() {
@@ -125,14 +125,16 @@ class StaticTriangleMesh {
         this.triangle_list = [];
         this.vertex_list = [];
         this.uv_list = [];
+        this.normals_list = [];
     }
     
-    generate(triangle_list, vertex_list, uv_list) {
+    generate(triangle_list, vertex_list, uv_list, normal_list) {
         this.release();
         
         this.triangle_list = triangle_list;
         this.vertex_list = vertex_list;
         this.uv_list = uv_list;
+        this.normal_list = normal_list;
 
         let index_list = [];
         for(let i = 0; i < triangle_list.length; i++) {
@@ -156,6 +158,12 @@ class StaticTriangleMesh {
                 vertex_buffer_list.push(uv['x']);
                 vertex_buffer_list.push(uv['y']);
             }
+            if(normal_list && normal_list.length === vertex_list.length) {
+                let normal = normal_list[i];
+                vertex_buffer_list.push(normal['x']);
+                vertex_buffer_list.push(normal['y']);
+                vertex_buffer_list.push(normal['z']);
+            }
         }
 
         this.vertex_buffer = gl.createBuffer();
@@ -163,30 +171,49 @@ class StaticTriangleMesh {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertex_buffer_list), gl.STATIC_DRAW);
     }
     
-    render(vertex_loc, uv_loc) {
+    render(vertex_loc, uv_loc, normal_loc) {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
 
         let stride = 0;
-
-        if(this.vertex_list && this.vertex_list.length > 0)
-            stride += 3 * 4;
-
-        if(this.uv_list && this.uv_list.length > 0)
-            stride += 2 * 4;
+        let vertex_offset = 0;
+        let uv_offset = 0;
+        let normal_offset = 0;
 
         if(this.vertex_list && this.vertex_list.length > 0) {
-            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, stride, 0);
+            stride += 3 * 4;
+            uv_offset = stride;
+            normal_offset = stride;
+        }
+
+        if(this.uv_list && this.uv_list.length > 0) {
+            stride += 2 * 4;
+            normal_offset = stride;
+        }
+
+        if(this.normal_list && this.normal_list.length > 0) {
+            stride += 3 * 4;
+        }
+
+        if(this.vertex_list && this.vertex_list.length > 0) {
+            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, stride, vertex_offset);
             gl.enableVertexAttribArray(vertex_loc);
         } else {
             gl.disableVertexAttribArray(vertex_loc);
         }
 
         if(this.uv_list && this.uv_list.length > 0) {
-            gl.vertexAttribPointer(uv_loc, 2, gl.FLOAT, false, stride, 12);
+            gl.vertexAttribPointer(uv_loc, 2, gl.FLOAT, false, stride, uv_offset);
             gl.enableVertexAttribArray(uv_loc);
         } else {
             gl.disableVertexAttribArray(uv_loc);
+        }
+        
+        if(this.normal_list && this.normal_list.length > 0) {
+            gl.vertexAttribPointer(normal_loc, 3, gl.FLOAT, false, stride, normal_offset);
+            gl.enableVertexAttribArray(normal_loc);
+        } else {
+            gl.disableVertexAttribArray(normal_loc);
         }
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
