@@ -278,15 +278,16 @@ class PuzzleMesh extends StaticTriangleMesh {
         return generator.contains_point(transformed_center);
     }
     
-    straddled_by_generator(generator) {
+    straddles_generator(generator) {
         let found_inside = false;
         let found_outside = false;
         for(let i = 0; i < this.vertex_list.length; i++) {
             let vertex = vec3_create(this.vertex_list[i]);
             vec3.transformMat4(vertex, vertex, this.permutation_transform);
-            if(generator.contains_point(vertex))
+            let side = generator.calc_side(vertex, 1e-7);
+            if(side === 'inside')
                 found_inside = true;
-            else
+            else if(side === 'outside')
                 found_outside = true;
             if(found_inside && found_outside)
                 return true;
@@ -326,16 +327,28 @@ class PuzzleGenerator {
     release() {
     }
     
-    contains_point(point) {
+    contains_point(point, eps=0.0) {
+        let side = this.calc_side(point, eps);
+        if(side === 'inside' || side == 'neither')
+            return true;
+        return false;
+    }
+    
+    calc_side(point, eps=1e-7) {
         let vec = vec3.create();
+        let largest_distance = -99999.0;
         for(let i = 0; i < this.plane_list.length; i++) {
             let plane = this.plane_list[i];
             vec3.subtract(vec, point, plane.center);
             let distance = vec3.dot(vec, plane.unit_normal);
-            if(distance >= 0.0)
-                return false;
+            if(distance > largest_distance)
+                largest_distance = distance;
         }
-        return true;
+        if(largest_distance < -eps)
+            return 'inside';
+        if(largest_distance > eps)
+            return 'outside';
+        return 'neither';
     }
 }
 
@@ -614,7 +627,7 @@ class Puzzle {
     generator_constrained(generator) {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
-            if(mesh.straddled_by_generator(generator))
+            if(mesh.straddles_generator(generator))
                 return true;
         }
         return false;
