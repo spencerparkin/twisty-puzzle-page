@@ -207,7 +207,9 @@ function mat4_rotate_about_center(result, center, axis, angle) {
 class PuzzleMesh extends StaticTriangleMesh {
     constructor(mesh_data) {
         super();
-        this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list, mesh_data.normal_list);
+        this.border_list = [];
+        this.border_vertex_buffer = undefined;
+        this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list, mesh_data.normal_list, mesh_data.border_loop);
         this.texture_number = mesh_data.texture_number;
         this.color = vec3_create(mesh_data.color);
         this.alpha = mesh_data.alpha;
@@ -217,6 +219,37 @@ class PuzzleMesh extends StaticTriangleMesh {
         this.animation_axis = vec3_create({x: 1.0, y: 0.0, z: 0.0});
         this.animation_angle = 0.0;
         this.highlight = false;
+    }
+
+    release() {
+        super.release();
+        
+        if(this.border_vertex_buffer) {
+            gl.deleteBuffer(this.border_vertex_buffer);
+            this.border_vertex_buffer = undefined;
+        }
+        
+        this.border_list = [];
+    }
+
+    generate(triangle_list, vertex_list, uv_list, normal_list, border_list) {
+        super.generate(triangle_list, vertex_list, uv_list, normal_list);
+        
+        this.border_list = border_list;
+        
+        if(this.border_list.length > 0) {
+            let border_vertex_buffer_list = [];
+            for(let i = 0; i < border_list.length; i++) {
+                let vertex = vertex_list[border_list[i]];
+                border_vertex_buffer_list.push(vertex.x);
+                border_vertex_buffer_list.push(vertex.y);
+                border_vertex_buffer_list.push(vertex.z);
+            }
+            
+            this.border_vertex_buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.border_vertex_buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(border_vertex_buffer_list), gl.STATIC_DRAW);
+        }
     }
 
     is_animating() {
@@ -239,6 +272,9 @@ class PuzzleMesh extends StaticTriangleMesh {
 
         if(this.alpha === 0.0)
             return;
+
+        let blendFactor_loc = gl.getUniformLocation(puzzle_shader.program, 'blendFactor');
+        gl.uniform1f(blendFactor_loc, blendFactor);
 
         let color_loc = gl.getUniformLocation(puzzle_shader.program, 'color');
         gl.uniform3fv(color_loc, this.color);
@@ -270,7 +306,22 @@ class PuzzleMesh extends StaticTriangleMesh {
         let uv_loc = gl.getAttribLocation(puzzle_shader.program, 'vertexUVs');
         let normal_loc = gl.getAttribLocation(puzzle_shader.program, 'vertexNormals');
         
+        // Go render the face.
         super.render(vertex_loc, uv_loc, normal_loc);
+        
+        // Now go render the face border.
+        if(this.border_list.length > 0) {
+            gl.uniform3fv(color_loc, vec3_create({'x': 0.0, 'y': 0.0, 'z': 0.0}));
+            gl.uniform1f(blendFactor_loc, 0.0);
+            gl.uniform1f(highlightFactor_loc, 0.0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.border_vertex_buffer);
+            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(vertex_loc);
+            gl.disableVertexAttribArray(uv_loc);
+            gl.disableVertexAttribArray(normal_loc);
+            gl.lineWidth(2.0);      // This apparently has no effect.
+            gl.drawArrays(gl.LINE_LOOP, 0, this.border_list.length);
+        }
     }
 
     is_captured_by_generator(generator) {
@@ -475,9 +526,6 @@ class Puzzle {
     
     render(reflect) {
         gl.useProgram(puzzle_shader.program);
-
-        let blendFactor_loc = gl.getUniformLocation(puzzle_shader.program, 'blendFactor');
-        gl.uniform1f(blendFactor_loc, blendFactor);
 
         let canvas = $('#puzzle_canvas')[0];
         let transform_matrix = calc_transform_matrix(canvas, reflect);
