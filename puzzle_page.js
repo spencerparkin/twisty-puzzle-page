@@ -720,7 +720,7 @@ class Puzzle {
             let j;
             do {
                 j = Math.round(Math.random() * (this.generator_list.length - 1));
-            } while(j === k);
+            } while(j === k || !this.generator_list[j].pick_point);
             k = j;
             let generator = this.generator_list[j];
             let inverse = Math.random() > 0.5 ? true : false;
