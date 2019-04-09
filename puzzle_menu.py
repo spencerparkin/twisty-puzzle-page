@@ -99,7 +99,8 @@ class Window(QtGui.QOpenGLWindow):
         glRotatef(orient.y, 0.0, 1.0, 0.0)
         glRotatef(orient.z, 0.0, 0.0, 1.0)
 
-        glEnable(GL_LIGHTING)
+        #glEnable(GL_LIGHTING)
+        glDisable(GL_LIGHTING)
         for mesh in mesh_list:
             if mesh.alpha > 0.0:
                 mesh.render()
