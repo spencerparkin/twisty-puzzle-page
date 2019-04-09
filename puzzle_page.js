@@ -30,6 +30,10 @@ var ViewModel = function() {
             this.move_queue.push(move_sequence[i].clone());
         this.clear_redo_list();
     }
+
+    this.helpClicked = function() {
+        window.open('puzzle_help.html', '_blank');
+    }
     
     this.undoClicked = function() {
         let move = this.undo_move_list.pop();

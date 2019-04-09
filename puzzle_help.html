@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Twisty Puzzle Page Help</title>
+</head>
+<body>
+    <h2>Basic Usage</h2>
+    <p>
+        The Twisty Puzzle Page presents its user with any one of several twisty puzzles which
+        can be selected from a scrolling menu revealed when the mouse cursor nears the top of the page.
+        Most of these are well-known puzzles; others may have been made up for fun.  Whatever the case,
+        all puzzles are manipulated the same way using the mouse.  Left-click and drag to orient the puzzle.
+        Hover over the puzzle until a desired sub-set of its faces are highlighted, then use the mouse
+        wheel to rotate those faces.  If they don't rotate, then it's due to bandaging of the puzzle.
+    </p>
+    <p>
+        Double-clicking anywhere on screen will scramble the puzzle with your confirmation.
+    </p>
+    <p>
+        For puzzles that have a special kind of move, such as the Curvy-Copter, hold the Shift or Ctrl key
+        down while rotating the mouse wheel to take advantage of these types of move.
+    </p>
+    <p>
+        In the lower left-hand corner, you'll find a few read-outs and controls.  All puzzles can be textured.
+        This makes the puzzle a harder challenge in most cases.  A mirror-reflection of the puzzle can be toggled.
+        I'm not sure how helpful this really is, but it's there.  Full undo/redo is supported.  You can save and
+        restore the state of any puzzle under a given name.
+    </p>
+    <h2>Advanced Usage</h2>
+    <p>
+        Also in the lower left-hand corner, you'll find a text-box where a sequence may be provided, then executed
+        in the context of the current orientation of the puzzle.  Talk more about this here...
+    </p>
+    <h2>Known Issues</h2>
+    <p>
+        Here is a list of currently known bugs/issues with the software...
+        <ul>
+            <li>Undo/redo state is not yet saved along with the state of the puzzle.</li>
+            <li>Some puzzles currently have incorrect border geometry.</li>
+            <li>The sequence feature has some bugs and is currently only useful for puzzles of cube shape.</li>
+            <li>Highlighted faces can distract you from the color scheme of the cube.  Perhaps only border colors should be used to highlight faces.</li>
+            <li>Some puzzles requiring many colors do not have a diverse enough color scheme.  Consequently, some colors are too close together to be discerned easily.</li>
+            <li>The mouse-driven interface can be a bit hard to use in some cases, such as when a back-facing part of the puzzle is accidentally rotated.  Perhaps only forward-facing parts should be selectable.</li>
+            <li>Hot-spots for face selection are not all optimally tuned.  Consequently, it can be hard to know where to hover the mouse to highlight faces.</li>
+            <li>Not all my favorite puzzles are supported, nor might the puzzle engine be robust-enough or general-purpose-enough to handle them all.</li>
+            <li>Not all puzzles can be sufficiently scrambled using the naive algorithm I have in place for that purpose.</li>
+            <li>Last but not least, no one gives a rats butt about my puzzle page, but that's okay.  I wrote it for me, and it's helped me learn some web development.</li>
+        </ul>
+    </p>
+    <h2>Contact</h2>
+    <p>
+        The author of the web-app may be contacted at <a href="mailto:spencertparkin@gmail.com">spencertparkin@gmail.com</a>.
+    </p>
+</body>
+</html>
