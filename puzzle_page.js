@@ -223,6 +223,7 @@ class PuzzleMesh extends StaticTriangleMesh {
         this.animation_axis = vec3_create({x: 1.0, y: 0.0, z: 0.0});
         this.animation_angle = 0.0;
         this.highlight = false;
+        this.special_case_data = mesh_data.special_case_data;
     }
 
     release() {

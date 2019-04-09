@@ -1254,7 +1254,37 @@ class WormHoleII(WormHoleBase):
         
         return mesh_list
 
-# TODO: How would we do the LatchCube?  This is one of my favorite cubes, because it's so hard.
+class LatchCube(RubiksCube):
+    def __init__(self):
+        super().__init__()
+
+    def annotate_puzzle_data(self, puzzle_data):
+        mesh_list = puzzle_data['mesh_list']
+        for mesh_data in mesh_list:
+            mesh = TriangleMesh().from_dict(mesh_data)
+            center = mesh.calc_center()
+            plane = PointCloud(point_list=mesh.vertex_list).fit_plane()
+            special_case_data = {'arrow': None}
+            if Vector(1.0, 0.0, 0.0).is_vector(plane.unit_normal) or Vector(-1.0, 0.0, 0.0).is_vector(plane.unit_normal):
+                if (center.y > 1.0 / 3.0 or center.y < -1.0 / 3.0) and -1.0 / 3.0 < center.z < 1.0 / 3.0:
+                    if Vector(1.0, 0.0, 0.0).is_vector(plane.unit_normal):
+                        special_case_data['arrow'] = 'black'
+                    elif Vector(-1.0, 0.0, 0.0).is_vector(plane.unit_normal):
+                        special_case_data['arrow'] = 'white'
+            elif Vector(0.0, 1.0, 0.0).is_vector(plane.unit_normal) or Vector(0.0, -1.0, 0.0).is_vector(plane.unit_normal):
+                if (center.z > 1.0 / 3.0 or center.z < -1.0 / 3.0) and -1.0 / 3.0 < center.x < 1.0 / 3.0:
+                    if Vector(0.0, 1.0, 0.0).is_vector(plane.unit_normal):
+                        special_case_data['arrow'] = 'black'
+                    elif Vector(0.0, -1.0, 0.0).is_vector(plane.unit_normal):
+                        special_case_data['arrow'] = 'white'
+            elif Vector(0.0, 0.0, 1.0).is_vector(plane.unit_normal) or Vector(0.0, 0.0, -1.0).is_vector(plane.unit_normal):
+                if (center.x > 1.0 / 3.0 or center.x < -1.0 / 3.0) and -1.0 / 3.0 < center.y < 1.0 / 3.0:
+                    if Vector(0.0, 0.0, 1.0).is_vector(plane.unit_normal):
+                        special_case_data['arrow'] = 'black'
+                    elif Vector(0.0, 0.0, -1.0).is_vector(plane.unit_normal):
+                        special_case_data['arrow'] = 'white'
+            mesh_data['special_case_data'] = special_case_data
+
 # TODO: Add Eitan's Star.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add Gem series?
