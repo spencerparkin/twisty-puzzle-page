@@ -285,6 +285,9 @@ class PuzzleDefinitionBase(object):
         
         return puzzle_path
 
+    def make_texture_space_transform_for_plane(self):
+        return None
+
     def calculate_uvs(self, final_mesh_list):
         
         class TexturePlane(object):
@@ -337,7 +340,9 @@ class PuzzleDefinitionBase(object):
                 face_mesh.texture_number = i
             
             # Make the transform taking us from model space to texture space.
-            texture_transform = plane.make_texture_space_transform()
+            texture_transform = self.make_texture_space_transform_for_plane(plane.plane)
+            if texture_transform is None:
+                texture_transform = plane.make_texture_space_transform()
 
             # Calculate the extents of the texture space.
             x_min = 1000.0
@@ -441,7 +446,7 @@ def main():
     from puzzle_definitions import Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4
     from puzzle_definitions import Pyraminx, BauhiniaDodecahedron, SkewbUltimate
     from puzzle_definitions import Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8
-    from puzzle_definitions import CubesOnDisk, WormHoleII
+    from puzzle_definitions import CubesOnDisk, WormHoleII, LatchCube
 
     puzzle_class_list = [
         RubiksCube, FisherCube, FusedCube, CurvyCopter,
@@ -451,7 +456,7 @@ def main():
         Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4,
         Pyraminx, BauhiniaDodecahedron, SkewbUltimate,
         Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8,
-        CubesOnDisk, WormHoleII
+        CubesOnDisk, WormHoleII, LatchCube
     ]
 
     arg_parser = argparse.ArgumentParser()

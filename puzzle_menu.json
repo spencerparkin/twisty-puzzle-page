@@ -75,6 +75,11 @@
         "puzzle_name": "HelicopterCube"
     },
     {
+        "puzzle_icon": "images/LatchCube.png",
+        "puzzle_label": "LatchCube",
+        "puzzle_name": "LatchCube"
+    },
+    {
         "puzzle_icon": "images/Megaminx.png",
         "puzzle_label": "Megaminx",
         "puzzle_name": "Megaminx"

@@ -1258,7 +1258,18 @@ class LatchCube(RubiksCube):
     def __init__(self):
         super().__init__()
 
+    def make_texture_space_transform_for_plane(self, plane):
+        return None # TODO: Here we can dictate the orientation of each custom texture to make sure they're properly decalling the cube.
+
     def annotate_puzzle_data(self, puzzle_data):
+        puzzle_data['custom_texture_path_list'] = [
+            'images/latch_cube/blue_face.png',
+            'images/latch_cube/green_face.png',
+            'images/latch_cube/black_face.png',
+            'images/latch_cube/white_face.png',
+            'images/latch_cube/red_face.png',
+            'images/latch_cube/yellow_face.png'
+        ]
         mesh_list = puzzle_data['mesh_list']
         for mesh_data in mesh_list:
             mesh = TriangleMesh().from_dict(mesh_data)

@@ -79,7 +79,7 @@ class Texture {
                 this.tex = gl.createTexture();
                 gl.bindTexture(gl.TEXTURE_2D, this.tex);
                 this.setup(image);
-                resolve();
+                resolve(this);
             }
             image.onerror = error => {
                 reject(error);

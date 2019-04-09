@@ -11,7 +11,6 @@ var blendFactor = 0.0;
 var viewModel = undefined;
 
 // TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
-// TODO: Add face decal support?  The Latch-cube, for example, may take advantage of this.
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds
@@ -273,7 +272,7 @@ class PuzzleMesh extends StaticTriangleMesh {
         }
     }
 
-    render() {
+    render(custom_texture_list) {
 
         if(this.alpha === 0.0)
             return;
@@ -285,8 +284,12 @@ class PuzzleMesh extends StaticTriangleMesh {
         gl.uniform3fv(color_loc, this.color);
         
         if(this.texture_number !== undefined && this.texture_number >= 0) {
-            let i = this.texture_number % puzzle_texture_list.length;
-            let puzzle_texture = puzzle_texture_list[i];
+            let puzzle_texture;
+            if(custom_texture_list.length > 0) {
+                puzzle_texture = custom_texture_list[this.texture_number % custom_texture_list.length];
+            } else {
+                puzzle_texture = puzzle_texture_list[this.texture_number % puzzle_texture_list.length];
+            }
             let sampler_loc = gl.getUniformLocation(puzzle_shader.program, 'texture');        
             puzzle_texture.bind(sampler_loc);
         } else {
@@ -456,6 +459,7 @@ class Puzzle {
         this.orient_matrix = mat4.create();
         this.selected_generator = -1;
         this.bandages = false;
+        this.custom_texture_list = [];
     }
     
     get_permutation_state() {
@@ -491,6 +495,12 @@ class Puzzle {
             mesh.release();
         }
         this.mesh_list = [];
+        
+        for(let i = 0; i < this.custom_texture_list.length; i++) {
+            let texture = this.custom_texture_list[i];
+            texture.release();
+        }
+        this.custom_texture_list = [];
     }
     
     promise() {
@@ -518,7 +528,15 @@ class Puzzle {
                             let generator = new PuzzleGenerator(generator_data);
                             this.generator_list.push(generator);
                         }
-                        resolve();
+                        let custom_texture_promise_list = [];
+                        let custom_texture_path_list = puzzle_data['custom_texture_path_list'];
+                        if(Array.isArray(custom_texture_path_list)) {
+                            for(let i = 0; i < custom_texture_path_list.length; i++) {
+                                this.custom_texture_list.push(new Texture(custom_texture_path_list[i]));
+                                custom_texture_promise_list.push(this.custom_texture_list[i].promise());
+                            }
+                        }
+                        Promise.all(custom_texture_promise_list).then(resolve);
                     }
                 },
                 error: function(request, status, error) {
@@ -539,7 +557,7 @@ class Puzzle {
 
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
-            mesh.render();
+            mesh.render(this.custom_texture_list);
         }
     }
 
