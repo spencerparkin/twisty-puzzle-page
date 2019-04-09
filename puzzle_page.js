@@ -10,8 +10,8 @@ var frames_per_second = 60.0;
 var blendFactor = 0.0;
 var viewModel = undefined;
 
-// TODO: Add save/load buttons.
-// TODO: Add lighting checkbox.
+// TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
+// TODO: Add face decal support?  The Latch-cube, for example, may take advantage of this.
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds
