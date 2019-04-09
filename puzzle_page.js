@@ -677,6 +677,8 @@ class Puzzle {
         let eps = 1e-7;
         if(this.name === 'PentacleCube')
             eps = 1e-1;
+        else if(this.name === 'Bagua')
+            eps = 1e-3;
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.straddles_generator(generator, eps))
