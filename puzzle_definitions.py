@@ -1258,6 +1258,9 @@ class LatchCube(RubiksCube):
     def __init__(self):
         super().__init__()
 
+    def bandages(self):
+        return True
+
     def make_texture_space_transform_for_plane(self, plane):
         linear_transform = LinearTransform()
         z_axis = plane.unit_normal.clone()  # The z-axis always points away from the face.
@@ -1292,6 +1295,8 @@ class LatchCube(RubiksCube):
             mesh = TriangleMesh().from_dict(mesh_data)
             center = mesh.calc_center()
             plane = PointCloud(point_list=mesh.vertex_list).fit_plane()
+            if plane.center.dot(plane.unit_normal) < 0.0:
+                plane.unit_normal = -plane.unit_normal
             special_case_data = {'arrow': None}
             if Vector(1.0, 0.0, 0.0).is_vector(plane.unit_normal) or Vector(-1.0, 0.0, 0.0).is_vector(plane.unit_normal):
                 if (center.y > 1.0 / 3.0 or center.y < -1.0 / 3.0) and -1.0 / 3.0 < center.z < 1.0 / 3.0:

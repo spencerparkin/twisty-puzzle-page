@@ -224,6 +224,10 @@ class PuzzleMesh extends StaticTriangleMesh {
         this.animation_angle = 0.0;
         this.highlight = false;
         this.special_case_data = mesh_data.special_case_data;
+        this.average_normal = vec3_create({x: 0.0, y: 0.0, z: 0.0});
+        for(let i = 0; i < mesh_data.normal_list.length; i++)
+            vec3.add(this.average_normal, this.average_normal, vec3_create(mesh_data.normal_list[i]));
+        vec3.normalize(this.average_normal, this.average_normal);
     }
 
     release() {
@@ -423,7 +427,7 @@ class PuzzleMove {
 
     apply() {
         if(puzzle.bandages) {
-            if(puzzle.generator_constrained(this.generator))
+            if(puzzle.move_constrained(this))
                 return false;
         }
         
@@ -697,16 +701,42 @@ class Puzzle {
         return undefined;
     }
 
-    generator_constrained(generator) {
-        let eps = 1e-7;
-        if(this.name === 'PentacleCube')
-            eps = 1e-1;
-        else if(this.name === 'Bagua')
-            eps = 1e-3;
-        for(let i = 0; i < this.mesh_list.length; i++) {
-            let mesh = this.mesh_list[i];
-            if(mesh.straddles_generator(generator, eps))
+    move_constrained(move) {
+        if(this.name === 'LatchCube') {
+            if(move.for_what === 'future')
+                return false;
+            let eps = 1e-4;
+            let black_count = 0;
+            let white_count = 0;
+            this.mesh_list.filter(mesh => {
+                let normal = vec3.create();
+                // We can get away with treating the normal as a point, because there is no translation in this case.
+                // Also, we don't need the inverse transpose, because all permutations are orthogonal.
+                vec3.transformMat4(normal, mesh.average_normal, mesh.permutation_transform);
+                return Math.abs(vec3.dot(normal, move.generator.axis) - 1.0) < eps;
+            }).forEach(mesh => {
+                if(mesh.special_case_data.arrow === 'black')
+                    black_count++;
+                if(mesh.special_case_data.arrow === 'white')
+                    white_count++;
+            });
+            if(black_count > 0 && white_count > 0)
                 return true;
+            if(black_count > 0 && !move.inverse)
+                return true;
+            if(white_count > 0 && move.inverse)
+                return true;
+        } else {
+            let eps = 1e-7;
+            if(this.name === 'PentacleCube')
+                eps = 1e-1;
+            else if(this.name === 'Bagua')
+                eps = 1e-3;
+            for(let i = 0; i < this.mesh_list.length; i++) {
+                let mesh = this.mesh_list[i];
+                if(mesh.straddles_generator(move.generator, eps))
+                    return true;
+            }
         }
         return false;
     }
