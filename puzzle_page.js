@@ -11,6 +11,7 @@ var blendFactor = 0.0;
 var viewModel = undefined;
 
 // TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
+// TODO: It should be possible to right-click on a highlighted axis group to assign a letter for the sequence textbox.
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds

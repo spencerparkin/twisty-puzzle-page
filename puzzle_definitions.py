@@ -1259,7 +1259,24 @@ class LatchCube(RubiksCube):
         super().__init__()
 
     def make_texture_space_transform_for_plane(self, plane):
-        return None # TODO: Here we can dictate the orientation of each custom texture to make sure they're properly decalling the cube.
+        linear_transform = LinearTransform()
+        z_axis = plane.unit_normal.clone()  # The z-axis always points away from the face.
+        if z_axis.is_vector(Vector(1.0, 0.0, 0.0)):
+            x_axis = linear_transform.y_axis
+        elif z_axis.is_vector(Vector(-1.0, 0.0, 0.0)):
+            x_axis = linear_transform.y_axis
+        elif z_axis.is_vector(Vector(0.0, 1.0, 0.0)):
+            x_axis = linear_transform.z_axis
+        elif z_axis.is_vector(Vector(0.0, -1.0, 0.0)):
+            x_axis = linear_transform.z_axis
+        elif z_axis.is_vector(Vector(0.0, 0.0, -1.0)):
+            x_axis = linear_transform.x_axis
+        elif z_axis.is_vector(Vector(0.0, 0.0, 1.0)):
+            x_axis = linear_transform.x_axis
+        y_axis = z_axis.cross(x_axis)       # Always make it a right-handed system.
+        transform = AffineTransform(x_axis=x_axis, y_axis=y_axis, z_axis=z_axis, translation=plane.center)
+        inverse_transform = transform.calc_inverse()
+        return inverse_transform
 
     def annotate_puzzle_data(self, puzzle_data):
         puzzle_data['custom_texture_path_list'] = [
