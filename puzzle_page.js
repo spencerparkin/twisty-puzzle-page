@@ -12,6 +12,8 @@ var viewModel = undefined;
 
 // TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
 // TODO: It should be possible to right-click on a highlighted axis group to assign a letter for the sequence textbox.
+//       In addition to highlighting a group of faces for an axis, I should show a read-out with the label for the axis
+//       that can be used in the sequence textbox.
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds
@@ -110,7 +112,7 @@ var ViewModel = function() {
     
     this.restoreClicked = function() {
         name = prompt('Load puzzle state using what name?', '');
-        if(name) {
+        if(name !== 'null') {
             let saved_state_map = this.grab_saved_state_map();
             if(!(name in saved_state_map)) {
                 alert('There is no puzzle state under the name "' + name + '" for the puzzle type in question.');

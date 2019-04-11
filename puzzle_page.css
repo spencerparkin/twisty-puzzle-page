@@ -82,3 +82,34 @@ body {
     padding: 5px 5px;
     border-radius: 6px;
 }
+
+.button {
+    background-color: blue;
+    border: none;
+    color: white;
+    padding: 0px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 0px 4px;
+    -webkit-transition-duration: 0.1s; /* Safari */
+    transition-duration: 0.1s;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 3px 3px #999;
+}
+
+.button:hover {
+    background-color: green;
+}
+
+.button:active {
+    background-color: green;
+    box-shadow: 0 2px #777;
+    transform: translateY(4px);
+}
+
+.button:disabled {
+    background-color: grey;
+}
