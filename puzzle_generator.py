@@ -101,13 +101,15 @@ class ColoredMesh(TriangleMesh):
                 self.border_loop = line_loop_list[0]
 
 class GeneratorMesh(TriangleMesh):
-    def __init__(self, mesh=None, center=None, axis=None, angle=None, pick_point=None):
+    def __init__(self, mesh=None, center=None, axis=None, angle=None, pick_point=None, min_capture_count=None, max_capture_count=None):
         super().__init__(mesh=mesh)
         self.center = center if center is not None else Vector(0.0, 0.0, 0.0)
         self.axis = axis if axis is not None else Vector(0.0, 0.0, 1.0)
         self.angle = angle if angle is not None else 0.0
         self.pick_point = pick_point
         self.capture_tree_root = None
+        self.min_capture_count = min_capture_count
+        self.max_capture_count = max_capture_count
 
     def clone(self):
         return GeneratorMesh(mesh=super().clone(), axis=self.axis.clone(), angle=self.angle, pick_point=self.pick_point.clone())
@@ -119,6 +121,8 @@ class GeneratorMesh(TriangleMesh):
         data['angle'] = self.angle
         data['pick_point'] = self.pick_point.to_dict() if self.pick_point is not None else None
         data['capture_tree_root'] = self.capture_tree_root
+        data['min_capture_count'] = self.min_capture_count
+        data['max_capture_count'] = self.max_capture_count
         return data
     
     def from_dict(self, data):
@@ -128,6 +132,8 @@ class GeneratorMesh(TriangleMesh):
         self.angle = data.get('angle', 0.0)
         self.pick_point = Vector().from_dict(data.get('pick_point')) if data.get('pick_point') is not None else None
         self.capture_tree_root = data.get('capture_tree_root')
+        self.min_capture_count = data.get('min_capture_count')
+        self.max_capture_count = data.get('max_capture_count')
         return self
 
     def make_plane_list(self):
@@ -285,7 +291,7 @@ class PuzzleDefinitionBase(object):
         
         return puzzle_path
 
-    def make_texture_space_transform_for_plane(self):
+    def make_texture_space_transform_for_plane(self, plane):
         return None
 
     def calculate_uvs(self, final_mesh_list):
@@ -446,7 +452,7 @@ def main():
     from puzzle_definitions import Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4
     from puzzle_definitions import Pyraminx, BauhiniaDodecahedron, SkewbUltimate
     from puzzle_definitions import Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8
-    from puzzle_definitions import CubesOnDisk, WormHoleII, LatchCube
+    from puzzle_definitions import CubesOnDisk, WormHoleII, LatchCube, Rubiks3x3x5
 
     puzzle_class_list = [
         RubiksCube, FisherCube, FusedCube, CurvyCopter,
@@ -456,7 +462,7 @@ def main():
         Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4,
         Pyraminx, BauhiniaDodecahedron, SkewbUltimate,
         Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8,
-        CubesOnDisk, WormHoleII, LatchCube
+        CubesOnDisk, WormHoleII, LatchCube, Rubiks3x3x5
     ]
 
     arg_parser = argparse.ArgumentParser()

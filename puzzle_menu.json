@@ -115,6 +115,11 @@
         "puzzle_name": "Rubiks2x3x3"
     },
     {
+        "puzzle_icon": "images/Rubiks3x3x5.png",
+        "puzzle_label": "Rubiks3x3x5",
+        "puzzle_name": "Rubiks3x3x5"
+    },
+    {
         "puzzle_icon": "images/Rubiks4x4.png",
         "puzzle_label": "Rubiks4x4",
         "puzzle_name": "Rubiks4x4"

@@ -342,7 +342,8 @@ class PuzzleMesh extends StaticTriangleMesh {
     is_captured_by_generator(generator) {
         let transformed_center = vec3.create();
         vec3.transformMat4(transformed_center, this.center, this.permutation_transform);
-        return generator.contains_point(transformed_center);
+        let side = generator.calc_side(transformed_center);
+        return side === 'inside';
     }
     
     straddles_generator(generator, eps=1e-7) {
@@ -380,6 +381,8 @@ class PuzzleGenerator {
         this.center = vec3_create(generator_data.center);
         this.axis = vec3_create(generator_data.axis);
         this.angle = generator_data.angle;
+        this.min_capture_count = generator_data.min_capture_count;
+        this.max_capture_count = generator_data.max_capture_count;
         this.plane_list = [];
         for(let i = 0; i < generator_data.plane_list.length; i++) {
             let plane_data = generator_data.plane_list[i];
@@ -392,13 +395,6 @@ class PuzzleGenerator {
     }
 
     release() {
-    }
-    
-    contains_point(point, eps=0.0) {
-        let side = this.calc_side(point, eps);
-        if(side === 'inside' || side == 'neither')
-            return true;
-        return false;
     }
     
     calc_side(point, eps=1e-7) {
@@ -737,6 +733,14 @@ class Puzzle {
             for(let i = 0; i < this.mesh_list.length; i++) {
                 let mesh = this.mesh_list[i];
                 if(mesh.straddles_generator(move.generator, eps))
+                    return true;
+            }
+            if(typeof move.generator.min_capture_count === 'number' || typeof move.generator.max_capture_count === 'number') {
+                let count = 0;
+                this.for_captured_meshes(move.generator, () => {count++;});
+                if(typeof move.generator.min_capture_count === 'number' && count < move.generator.min_capture_count)
+                    return true;
+                if(typeof move.generator.max_capture_count === 'number' && count > move.generator.max_capture_count)
                     return true;
             }
         }
