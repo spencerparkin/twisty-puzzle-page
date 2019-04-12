@@ -1429,4 +1429,5 @@ class MultiCube(PuzzleDefinitionBase):
 
 # TODO: Add Eitan's Star.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
-# TODO: Add Gem series?
+# TODO: Add constrained cube.  It's just a 3x3 with logic needed in the simulator to handle the constraints.  Some additional rendering
+#       would be needed to show which way a face can turn, though, which is the crux of implementing this puzzle.  Maybe do this with texture switches.
