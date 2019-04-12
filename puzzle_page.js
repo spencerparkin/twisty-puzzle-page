@@ -331,12 +331,12 @@ class PuzzleMesh extends StaticTriangleMesh {
         gl.uniform3fv(color_loc, vec3_create({'x': 0.0, 'y': 0.0, 'z': 0.0}));
         gl.uniform1f(blendFactor_loc, 0.0);
         gl.uniform1f(highlightFactor_loc, 0.0);
-        gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vertex_loc);
         gl.disableVertexAttribArray(uv_loc);
         gl.disableVertexAttribArray(normal_loc);
         this.border_vertex_buffer_list.forEach((border_vertex_buffer, i) => {            
             gl.bindBuffer(gl.ARRAY_BUFFER, border_vertex_buffer);
+            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
             gl.lineWidth(2.0);      // This apparently is not honored.
             gl.drawArrays(gl.LINE_LOOP, 0, this.border_length_list[i]);
         });
