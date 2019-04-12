@@ -90,6 +90,11 @@
         "puzzle_name": "MixupCube"
     },
     {
+        "puzzle_icon": "images/MultiCube.png",
+        "puzzle_label": "MultiCube",
+        "puzzle_name": "MultiCube"
+    },
+    {
         "puzzle_icon": "images/PentacleCube.png",
         "puzzle_label": "PentacleCube",
         "puzzle_name": "PentacleCube"

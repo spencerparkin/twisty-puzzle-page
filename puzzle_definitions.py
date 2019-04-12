@@ -1352,6 +1352,81 @@ class Rubiks3x3x5(RubiksCube):
         
         return mesh_list
 
+class MultiCube(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+    
+    def make_initial_mesh_list(self):
+        base_mesh = TriangleMesh()
+        base_mesh.add_triangle(Triangle(Vector(1.0, -1.0, 0.0), Vector(0.5, 0.0, 0.0), Vector(0.0, -0.5, 0.0)))
+        base_mesh.add_triangle(Triangle(Vector(1.0, 1.0, 0.0), Vector(0.0, 0.5, 0.0), Vector(0.5, 0.0, 0.0)))
+        base_mesh.add_triangle(Triangle(Vector(-1.0, 1.0, 0.0), Vector(-0.5, 0.0, 0.0), Vector(0.0, 0.5, 0.0)))
+        base_mesh.add_triangle(Triangle(Vector(-1.0, -1.0, 0.0), Vector(0.0, -0.5, 0.0), Vector(-0.5, 0.0, 0.0)))
+        base_mesh.add_triangle(Triangle(Vector(-1.0, -1.0, 0.0), Vector(1.0, -1.0, 0.0), Vector(0.0, -0.5, 0.0)))
+        base_mesh.add_triangle(Triangle(Vector(1.0, -1.0, 0.0), Vector(1.0, 1.0, 0.0), Vector(0.5, 0.0, 0.0)))
+        base_mesh.add_triangle(Triangle(Vector(1.0, 1.0, 0.0), Vector(-1.0, 1.0, 0.0), Vector(0.0, 0.5, 0.0)))
+        base_mesh.add_triangle(Triangle(Vector(-1.0, 1.0, 0.0), Vector(-1.0, -1.0, 0.0), Vector(-0.5, 0.0, 0.0)))
+        
+        mesh_list = self.make_standard_cube_faces_using_base_mesh(base_mesh)
+
+        base_mesh = TriangleMesh()
+        base_mesh.add_triangle(Triangle(Vector(0.0, 0.0, -0.25), Vector(0.5, 0.0, -0.25), Vector(0.0, 0.5, -0.25)))
+        base_mesh.add_triangle(Triangle(Vector(0.0, 0.0, -0.25), Vector(0.0, 0.5, -0.25), Vector(-0.5, 0.0, -0.25)))
+        base_mesh.add_triangle(Triangle(Vector(0.0, 0.0, -0.25), Vector(-0.5, 0.0, -0.25), Vector(0.0, -0.5, -0.25)))
+        base_mesh.add_triangle(Triangle(Vector(0.0, 0.0, -0.25), Vector(0.0, -0.5, -0.25), Vector(0.5, 0.0, -0.25)))
+        
+        mesh_list += self.make_standard_cube_faces_using_base_mesh(base_mesh)
+        
+        return mesh_list
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+        
+        for i, vector in enumerate(Vector(1.0, 1.0, 1.0).sign_permute()):
+            mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), -vector.normalized(), 4.0, 4), axis=vector.normalized(), angle=2.0 * math.pi / 3.0, pick_point=vector)
+            mesh_a = AffineTransform().make_translation(vector.normalized() * 0.1)(mesh)
+            mesh_b = AffineTransform().make_translation(vector.normalized() * 0.525)(mesh)
+            mesh_list.append(mesh_a)
+            mesh_list.append(mesh_b)
+            
+            mesh_b.pick_point = None
+            
+            mesh_a.capture_tree_root = {
+                'op': 'union',
+                'children': [
+                    {
+                        'op': 'subtract',
+                        'children': [
+                            {'mesh': i * 2},
+                            {'mesh': 16}
+                        ]
+                    },
+                    {
+                        'op': 'intersection',
+                        'children': [
+                            {'mesh': 16},
+                            {'mesh': i * 2 + 1}
+                        ]
+                    }
+                ]
+            }
+        
+        self.core_mesh = GeneratorMesh(mesh=LinearTransform().make_uniform_scale(0.9)(TriangleMesh.make_polyhedron(Polyhedron.HEXAHEDRON)), pick_point=None)
+        mesh_list.append(self.core_mesh)
+        
+        # TODO: Add center slice generators with offset pick-points.
+        
+        return mesh_list
+
+    def can_apply_cutmesh_to_mesh(self, i, cut_mesh, cut_pass, mesh):
+        if i == 16:
+            return False        # Ignore the core mesh.
+        if i % 2 == 0:
+            return True
+        if self.core_mesh.captures_mesh(mesh):
+            return True
+        return False
+
 # TODO: Add Eitan's Star.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add Gem series?

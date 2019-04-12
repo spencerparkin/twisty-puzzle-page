@@ -10,6 +10,7 @@ var frames_per_second = 60.0;
 var blendFactor = 0.0;
 var viewModel = undefined;
 
+// TODO: Should be able to support decal layer textures for each puzzle.  These overlay any default or override textures, and are used for logos.
 // TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
 // TODO: It should be possible to right-click on a highlighted axis group to assign a letter for the sequence textbox.
 //       In addition to highlighting a group of faces for an axis, I should show a read-out with the label for the axis
@@ -684,7 +685,7 @@ class Puzzle {
             } else if(capture_tree_node.op === 'subtract') {
                 captured_mesh_set = subtract_sets(child_captured_mesh_set_list);
             }
-        } else if(capture_tree_node.mesh) {
+        } else if(typeof capture_tree_node.mesh === 'number') {
             let generator = this.generator_list[capture_tree_node.mesh];
             this._for_captured_meshes_internal(generator, mesh => {
                 captured_mesh_set.add(mesh);

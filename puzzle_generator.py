@@ -210,6 +210,9 @@ class PuzzleDefinitionBase(object):
     def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
         return True
 
+    def can_apply_cutmesh_to_mesh(self, i, cut_mesh, cut_pass, mesh):
+        return True
+
     def generate_final_mesh_list(self):
         initial_mesh_list = self.make_initial_mesh_list()
         final_mesh_list = [mesh.clone() for mesh in initial_mesh_list]
@@ -225,11 +228,14 @@ class PuzzleDefinitionBase(object):
                     print('Applying cut mesh %d of %d...' % (i + 1, len(generator_mesh_list)))
                     new_mesh_list = []
                     for mesh in final_mesh_list:
-                        back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
-                        if len(back_mesh.triangle_list) > 0:
-                            new_mesh_list.append(ColoredMesh(mesh=back_mesh, color=mesh.color))
-                        if len(front_mesh.triangle_list) > 0:
-                            new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
+                        if not self.can_apply_cutmesh_to_mesh(i, cut_mesh, cut_pass, mesh):
+                            new_mesh_list.append(mesh)
+                        else:
+                            back_mesh, front_mesh = mesh.split_against_mesh(cut_mesh)
+                            if len(back_mesh.triangle_list) > 0:
+                                new_mesh_list.append(ColoredMesh(mesh=back_mesh, color=mesh.color))
+                            if len(front_mesh.triangle_list) > 0:
+                                new_mesh_list.append(ColoredMesh(mesh=front_mesh, color=mesh.color))
                     final_mesh_list = new_mesh_list
                     # This is an optimization in terms of both time and memory.  Note that it is not needed for correctness.
                     for mesh in final_mesh_list:
@@ -395,6 +401,16 @@ class PuzzleDefinitionBase(object):
     def annotate_puzzle_data(self, puzzle_data):
         pass
     
+    def make_standard_cube_faces_using_base_mesh(self, base_mesh):
+        l_mesh = ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), -math.pi / 2.0, Vector(-1.0, 0.0, 0.0))(base_mesh), color=Vector(0.0, 0.0, 1.0))
+        r_mesh = ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(0.0, 1.0, 0.0), math.pi / 2.0, Vector(1.0, 0.0, 0.0))(base_mesh), color=Vector(0.0, 1.0, 0.0))
+        d_mesh = ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi / 2.0, Vector(0.0, -1.0, 0.0))(base_mesh), color=Vector(1.0, 1.0, 1.0))
+        u_mesh = ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), -math.pi / 2.0, Vector(0.0, 1.0, 0.0))(base_mesh), color=Vector(1.0, 1.0, 0.0))
+        b_mesh = ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), math.pi, Vector(0.0, 0.0, -1.0))(base_mesh), color=Vector(1.0, 0.5, 0.0))
+        f_mesh = ColoredMesh(mesh=AffineTransform().make_rigid_body_motion(Vector(1.0, 0.0, 0.0), 0.0, Vector(0.0, 0.0, 1.0))(base_mesh), color=Vector(1.0, 0.0, 0.0))
+        
+        return [l_mesh, r_mesh, d_mesh, u_mesh, b_mesh, f_mesh]
+    
     def make_face_meshes(self, mesh):
         face_mesh_list = []
         plane_list = []
@@ -453,6 +469,7 @@ def main():
     from puzzle_definitions import Pyraminx, BauhiniaDodecahedron, SkewbUltimate
     from puzzle_definitions import Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8
     from puzzle_definitions import CubesOnDisk, WormHoleII, LatchCube, Rubiks3x3x5
+    from puzzle_definitions import MultiCube
 
     puzzle_class_list = [
         RubiksCube, FisherCube, FusedCube, CurvyCopter,
@@ -462,7 +479,8 @@ def main():
         Dogic, Bubbloid4x4x5, Rubiks2x2, Rubiks4x4,
         Pyraminx, BauhiniaDodecahedron, SkewbUltimate,
         Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8,
-        CubesOnDisk, WormHoleII, LatchCube, Rubiks3x3x5
+        CubesOnDisk, WormHoleII, LatchCube, Rubiks3x3x5,
+        MultiCube
     ]
 
     arg_parser = argparse.ArgumentParser()
