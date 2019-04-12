@@ -23,7 +23,7 @@ class ColoredMesh(TriangleMesh):
         self.uv_list = []
         self.normal_list = []
         self.texture_number = -1
-        self.border_loop = []
+        self.border_loop_list = []
 
     def clone(self):
         return ColoredMesh(mesh=super().clone(), color=self.color.clone(), alpha=self.alpha)
@@ -35,7 +35,7 @@ class ColoredMesh(TriangleMesh):
         data['uv_list'] = [uv.to_dict() for uv in self.uv_list]
         data['normal_list'] = [normal.to_dict() for normal in self.normal_list]
         data['texture_number'] = self.texture_number
-        data['border_loop'] = self.border_loop
+        data['border_loop_list'] = self.border_loop_list
         return data
 
     def from_dict(self, data):
@@ -45,7 +45,7 @@ class ColoredMesh(TriangleMesh):
         self.uv_list = [Vector().from_dict(uv) for uv in data.get('uv_list', [])]
         self.normal_list = [Vector().from_dict(normal) for normal in data.get('normal_list', [])]
         self.texture_number = data.get('texture_number', -1)
-        self.border_loop = data.get('border_loop', [])
+        self.border_loop_list = data.get('border_loop_list', [])
         return self
     
     def render(self, random_colors=False):
@@ -62,14 +62,13 @@ class ColoredMesh(TriangleMesh):
 
     def render_border(self):
         from OpenGL.GL import glColor3f, glLineWidth, glBegin, glEnd, glVertex3f, GL_LINE_LOOP
-        
-        if self.border_loop is not None:
+        for border_loop in self.border_loop_list:
             scale = 1.001
             glColor3f(0.0, 0.0, 0.0)
             glLineWidth(4.0)
             glBegin(GL_LINE_LOOP)
             try:
-                for i in self.border_loop:
+                for i in border_loop:
                     point = self.vertex_list[i].clone()
                     point *= scale      # This idea won't work in all cases.
                     glVertex3f(point.x, point.y, point.z)
@@ -90,15 +89,11 @@ class ColoredMesh(TriangleMesh):
                 best_triangle = triangle
         return best_triangle.calc_center()
 
-    def calc_border_loop(self):
-        self.border_loop = []
+    def calc_border_loop_list(self):
         try:
-            line_loop_list = self.find_boundary_loops()
+            self.border_loop_list = self.find_boundary_loops()
         except:
-            pass    # Eat exceptions for now.  I still have some debugging to do here.
-        else:
-            if len(line_loop_list) == 1:
-                self.border_loop = line_loop_list[0]
+            self.border_loop_list = [] # Eat exceptions for now.  There is a bug I still need to find and fix.
 
 class GeneratorMesh(TriangleMesh):
     def __init__(self, mesh=None, center=None, axis=None, angle=None, pick_point=None, min_capture_count=None, max_capture_count=None):
@@ -280,7 +275,7 @@ class PuzzleDefinitionBase(object):
         
         with ProfileBlock('Calculate border loops'):
             for mesh in final_mesh_list:
-                mesh.calc_border_loop()
+                mesh.calc_border_loop_list()
         
         with ProfileBlock('Make puzzle file'):
             puzzle_data = {

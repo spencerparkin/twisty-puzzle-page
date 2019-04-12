@@ -214,9 +214,9 @@ function mat4_rotate_about_center(result, center, axis, angle) {
 class PuzzleMesh extends StaticTriangleMesh {
     constructor(mesh_data) {
         super();
-        this.border_list = [];
-        this.border_vertex_buffer = undefined;
-        this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list, mesh_data.normal_list, mesh_data.border_loop);
+        this.border_length_list = [];
+        this.border_vertex_buffer_list = [];
+        this.generate(mesh_data.triangle_list, mesh_data.vertex_list, mesh_data.uv_list, mesh_data.normal_list, mesh_data.border_loop_list);
         this.texture_number = mesh_data.texture_number;
         this.color = vec3_create(mesh_data.color);
         this.alpha = mesh_data.alpha;
@@ -236,32 +236,34 @@ class PuzzleMesh extends StaticTriangleMesh {
     release() {
         super.release();
         
-        if(this.border_vertex_buffer) {
-            gl.deleteBuffer(this.border_vertex_buffer);
-            this.border_vertex_buffer = undefined;
-        }
+        this.border_vertex_buffer_list.forEach(border_vertex_buffer => {
+            gl.deleteBuffer(border_vertex_buffer);
+        });
         
-        this.border_list = [];
+        this.border_vertex_buffer_list = [];
+        this.border_length_list = [];
     }
 
-    generate(triangle_list, vertex_list, uv_list, normal_list, border_list) {
+    generate(triangle_list, vertex_list, uv_list, normal_list, border_loop_list) {
         super.generate(triangle_list, vertex_list, uv_list, normal_list);
         
-        this.border_list = border_list;
-        
-        if(this.border_list.length > 0) {
-            let border_vertex_buffer_list = [];
-            for(let i = 0; i < border_list.length; i++) {
-                let vertex = vertex_list[border_list[i]];
-                border_vertex_buffer_list.push(vertex.x);
-                border_vertex_buffer_list.push(vertex.y);
-                border_vertex_buffer_list.push(vertex.z);
+        border_loop_list.forEach(border_loop => {
+            if(border_loop.length > 2) {
+                let border_vertex_list = [];
+                for(let i = 0; i < border_loop.length; i++) {
+                    let vertex = vertex_list[border_loop[i]];
+                    border_vertex_list.push(vertex.x);
+                    border_vertex_list.push(vertex.y);
+                    border_vertex_list.push(vertex.z);
+                }
+                
+                let border_vertex_buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, border_vertex_buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(border_vertex_list), gl.STATIC_DRAW);
+                this.border_vertex_buffer_list.push(border_vertex_buffer);
+                this.border_length_list.push(border_loop.length);
             }
-            
-            this.border_vertex_buffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.border_vertex_buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(border_vertex_buffer_list), gl.STATIC_DRAW);
-        }
+        });
     }
 
     is_animating() {
@@ -325,19 +327,19 @@ class PuzzleMesh extends StaticTriangleMesh {
         // Go render the face.
         super.render(vertex_loc, uv_loc, normal_loc);
         
-        // Now go render the face border.
-        if(this.border_list.length > 0) {
-            gl.uniform3fv(color_loc, vec3_create({'x': 0.0, 'y': 0.0, 'z': 0.0}));
-            gl.uniform1f(blendFactor_loc, 0.0);
-            gl.uniform1f(highlightFactor_loc, 0.0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.border_vertex_buffer);
-            gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vertex_loc);
-            gl.disableVertexAttribArray(uv_loc);
-            gl.disableVertexAttribArray(normal_loc);
-            gl.lineWidth(2.0);      // This apparently has no effect.
-            gl.drawArrays(gl.LINE_LOOP, 0, this.border_list.length);
-        }
+        // Now go render the face borders.
+        gl.uniform3fv(color_loc, vec3_create({'x': 0.0, 'y': 0.0, 'z': 0.0}));
+        gl.uniform1f(blendFactor_loc, 0.0);
+        gl.uniform1f(highlightFactor_loc, 0.0);
+        gl.vertexAttribPointer(vertex_loc, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(vertex_loc);
+        gl.disableVertexAttribArray(uv_loc);
+        gl.disableVertexAttribArray(normal_loc);
+        this.border_vertex_buffer_list.forEach((border_vertex_buffer, i) => {            
+            gl.bindBuffer(gl.ARRAY_BUFFER, border_vertex_buffer);
+            gl.lineWidth(2.0);      // This apparently is not honored.
+            gl.drawArrays(gl.LINE_LOOP, 0, this.border_length_list[i]);
+        });
     }
 
     is_captured_by_generator(generator) {
