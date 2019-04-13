@@ -947,6 +947,7 @@ function canvas_mouse_double_click(event) {
         puzzle.scramble();
     }
     dragging = false;
+    event.preventDefault();
 }
 
 function calc_transform_matrix(canvas, reflect=false) {

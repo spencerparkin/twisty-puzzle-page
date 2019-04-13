@@ -1427,6 +1427,104 @@ class MultiCube(PuzzleDefinitionBase):
             return True
         return False
 
+class SuperStar(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+        self.frame_list = [
+            LinearTransform().make_rotation(Vector(1.0, 0.0, 0.0), 0.0),
+            LinearTransform().make_rotation(Vector(1.0, 0.0, 0.0), math.pi / 2.0),
+            LinearTransform().make_rotation(Vector(1.0, 0.0, 0.0), math.pi),
+            LinearTransform().make_rotation(Vector(1.0, 0.0, 0.0), -math.pi / 2.0),
+            LinearTransform().make_rotation(Vector(0.0, 1.0, 0.0), math.pi),
+            LinearTransform().make_rotation(Vector(0.0, 1.0, 0.0), -math.pi / 2.0),
+            LinearTransform().make_rotation(Vector(0.0, 0.0, 1.0), math.pi),
+            LinearTransform().make_rotation(Vector(1.0, 0.0, 0.0), math.pi / 2.0)(LinearTransform().make_rotation(Vector(0.0, 0.0, 1.0), math.pi))
+        ]
+
+    def make_octant_triangles(self, frame):
+        center = (frame.x_axis + frame.y_axis + frame.z_axis) / 2.0
+        return [
+            Triangle(frame.x_axis, frame.x_axis + frame.y_axis, center),
+            Triangle(frame.x_axis + frame.y_axis, frame.y_axis, center),
+            Triangle(frame.y_axis, frame.y_axis + frame.z_axis, center),
+            Triangle(frame.y_axis + frame.z_axis, frame.z_axis, center),
+            Triangle(frame.z_axis, frame.z_axis + frame.x_axis, center),
+            Triangle(frame.z_axis + frame.x_axis, frame.x_axis, center)
+        ]
+
+    def make_initial_mesh_list(self):
+        mesh_list = []
+
+        color_list = [
+            Vector(1.0, 0.0, 0.0),
+            Vector(0.0, 1.0, 0.0),
+            Vector(0.0, 0.5, 1.0),
+            Vector(1.0, 1.0, 0.0)
+        ]
+
+        # Make a stellated rhombic dodecahedron.
+        i = 0
+        for frame in self.frame_list:
+            for triangle in self.make_octant_triangles(frame):
+                mesh = TriangleMesh()
+                mesh.add_triangle(triangle)
+                color = color_list[i]
+                i = (i + 1) % len(color_list)
+                mesh_list.append(ColoredMesh(mesh=mesh, color=color))
+
+        return mesh_list
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+
+        frame = LinearTransform()
+
+        axis_pair_list = [
+            (frame.x_axis, frame.y_axis),
+            (frame.x_axis, -frame.y_axis),
+            (frame.x_axis, frame.z_axis),
+            (frame.x_axis, -frame.z_axis),
+            (-frame.x_axis, frame.y_axis),
+            (-frame.x_axis, -frame.y_axis),
+            (-frame.x_axis, frame.z_axis),
+            (-frame.x_axis, -frame.z_axis),
+            (frame.z_axis, frame.y_axis),
+            (frame.z_axis, -frame.y_axis),
+            (-frame.z_axis, frame.y_axis),
+            (-frame.z_axis, -frame.y_axis)
+        ]
+
+        for axis_pair in axis_pair_list:
+            axis_a = axis_pair[0]
+            axis_b = axis_pair[1]
+            axis_sum = axis_a + axis_b
+            mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(axis_sum / 2.0, -axis_sum.normalized(), 4.0, 4), pick_point=axis_sum, axis=axis_sum.normalized(), angle=math.pi)
+            mesh_list.append(mesh)
+
+        axis_list = [
+            frame.x_axis,
+            -frame.x_axis,
+            frame.y_axis,
+            -frame.y_axis,
+            frame.z_axis,
+            -frame.z_axis
+        ]
+
+        length = ((frame.x_axis + frame.y_axis + frame.z_axis) / 2.0).dot(frame.x_axis)
+
+        for axis in axis_list:
+            mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(axis * length, -axis, 4.0, 4), pick_point=axis, axis=axis, angle=math.pi / 2.0)
+            mesh_list.append(mesh)
+
+        for frame in self.frame_list:
+            center = (frame.x_axis + frame.y_axis + frame.z_axis) / 2.0
+            mesh = GeneratorMesh(mesh=TriangleMesh.make_disk(center * (2.0 / 3.0), -center.normalized(), 4.0, 4), pick_point=center, axis=center.normalized(), angle=2.0 * math.pi / 3.0)
+            mesh_list.append(mesh)
+
+        return mesh_list
+
+# TODO: Add the Dreidel Cube.
 # TODO: Add Eitan's Star.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add constrained cube.  It's just a 3x3 with logic needed in the simulator to handle the constraints.  Some additional rendering

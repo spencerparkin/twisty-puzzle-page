@@ -150,6 +150,11 @@
         "puzzle_name": "SquareOne"
     },
     {
+        "puzzle_icon": "images/SuperStar.png",
+        "puzzle_label": "SuperStar",
+        "puzzle_name": "SuperStar"
+    },
+    {
         "puzzle_icon": "images/WormHoleII.png",
         "puzzle_label": "WormHoleII",
         "puzzle_name": "WormHoleII"
