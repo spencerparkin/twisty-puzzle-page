@@ -1606,6 +1606,8 @@ class Cubic4x6x8(PuzzleDefinitionBase):
     def make_generator_mesh_list(self):
         mesh_list = []
 
+        # I'm not sure, but we might need the same count for all axes,
+        # but only let some of the generators meshes cut the cube.
         count_list = [3, 2, 4]
         axis_list = [
             Vector(1.0, 0.0, 0.0),
