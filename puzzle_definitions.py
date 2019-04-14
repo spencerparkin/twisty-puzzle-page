@@ -1558,7 +1558,44 @@ class DreidelCube(RubiksCube):
                 self.apply_generator(mesh_list, generator_mesh_list[i], inverse=True)
             return False
 
-# TODO: Add Eitan's Star.
+class EitansStar(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def make_initial_mesh_list(self):
+        self.mesh = TriangleMesh().make_polyhedron(Polyhedron.ICOSAHEDRON)
+
+        triangle = self.mesh.triangle_list[0]
+        adjacent_triangles_list = self.mesh.find_adjacent_triangles(triangle)
+        point_cloud = PointCloud()
+        for triangle_info in adjacent_triangles_list:
+            triangle = triangle_info[0]
+            triangle = self.mesh.make_triangle(triangle)
+            point_cloud.add_point((triangle[triangle_info[1]] + triangle[triangle_info[1] + 1]) / 2.0)
+            point_cloud.add_point((triangle[triangle_info[1]] + triangle[triangle_info[1] - 1]) / 2.0)
+        self.length = point_cloud.calc_center().length()
+
+        face_mesh_list, plane_list = self.make_face_meshes(self.mesh.clone())
+        return face_mesh_list
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+
+        for vertex in self.mesh.vertex_list:
+            normal = vertex.normalized()
+            mesh = TriangleMesh.make_disk(Vector(0.0, 0.0, 0.0), -normal, 5.0, 4)
+            mesh = GeneratorMesh(mesh=mesh, axis=normal, angle=2.0 * math.pi / 5.0, pick_point=vertex)
+            mesh_list.append(mesh)
+
+        for triangle in self.mesh.triangle_list:
+            triangle = self.mesh.make_triangle(triangle)
+            plane = triangle.calc_plane()
+            mesh = TriangleMesh.make_disk(plane.unit_normal * self.length, -plane.unit_normal, 5.0, 4)
+            mesh = GeneratorMesh(mesh=mesh, axis=plane.unit_normal, angle=2.0 * math.pi / 3.0, pick_point=triangle.calc_center())
+            mesh_list.append(mesh)
+
+        return mesh_list
+
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add constrained cube.  It's just a 3x3 with logic needed in the simulator to handle the constraints.  Some additional rendering
 #       would be needed to show which way a face can turn, though, which is the crux of implementing this puzzle.  Maybe do this with texture switches.
