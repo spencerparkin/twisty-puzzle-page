@@ -105,6 +105,7 @@ class GeneratorMesh(TriangleMesh):
         self.capture_tree_root = None
         self.min_capture_count = min_capture_count
         self.max_capture_count = max_capture_count
+        self.fixed_label = ''
 
     def clone(self):
         return GeneratorMesh(mesh=super().clone(), axis=self.axis.clone(), angle=self.angle, pick_point=self.pick_point.clone())
@@ -118,6 +119,7 @@ class GeneratorMesh(TriangleMesh):
         data['capture_tree_root'] = self.capture_tree_root
         data['min_capture_count'] = self.min_capture_count
         data['max_capture_count'] = self.max_capture_count
+        data['fixed_label'] = self.fixed_label
         return data
     
     def from_dict(self, data):
@@ -129,6 +131,7 @@ class GeneratorMesh(TriangleMesh):
         self.capture_tree_root = data.get('capture_tree_root')
         self.min_capture_count = data.get('min_capture_count')
         self.max_capture_count = data.get('max_capture_count')
+        self.fixed_label = data.get('fixed_label', '')
         return self
 
     def make_plane_list(self):
@@ -266,7 +269,11 @@ class PuzzleDefinitionBase(object):
     def generate_puzzle_file(self):
         with ProfileBlock('Generate meshes'):
             final_mesh_list, initial_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
-        
+            i = 97
+            for mesh in generator_mesh_list:
+                mesh.fixed_label = chr(i)   # TODO: Some puzzles may have more than 26 axes.
+                i += 1
+
         with ProfileBlock('Calculate UVs'):
             self.calculate_uvs(final_mesh_list)
         
