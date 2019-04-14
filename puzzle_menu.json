@@ -45,6 +45,11 @@
         "puzzle_name": "Dogic"
     },
     {
+        "puzzle_icon": "images/DreidelCube.png",
+        "puzzle_label": "DreidelCube",
+        "puzzle_name": "DreidelCube"
+    },
+    {
         "puzzle_icon": "images/FisherCube.png",
         "puzzle_label": "FisherCube",
         "puzzle_name": "FisherCube"

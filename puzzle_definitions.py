@@ -1456,6 +1456,7 @@ class SuperStar(PuzzleDefinitionBase):
     def make_initial_mesh_list(self):
         mesh_list = []
 
+        # TODO: Add support on any puzzle for multiple color schemes?  This puzzle is a good candidate.
         color_list = [
             Vector(1.0, 0.0, 0.0),
             Vector(0.0, 1.0, 0.0),
@@ -1524,7 +1525,39 @@ class SuperStar(PuzzleDefinitionBase):
 
         return mesh_list
 
-# TODO: Add the Dreidel Cube.
+class DreidelCube(RubiksCube):
+    def __init__(self):
+        super().__init__()
+
+    def make_generator_mesh_list(self):
+        mesh_list = super().make_generator_mesh_list()
+
+        radius = 2.0 * math.sqrt(2.0) / 3.0
+
+        for center in Vector(1.0, 1.0, 1.0).sign_permute():
+            sphere = Sphere(center, radius)
+            mesh = GeneratorMesh(mesh=sphere.make_mesh(subdivision_level=2), axis=center.normalized(), angle=math.pi / 3.0, pick_point=center)
+            mesh_list.append(mesh)
+
+        return mesh_list
+
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
+        if cut_pass == 0:
+            return True
+        if cut_pass == 1:
+            return True if 0 <= i < 6 else False
+        return False
+
+    def transform_meshes_for_more_cutting(self, mesh_list, generator_mesh_list, cut_pass):
+        if cut_pass == 0:
+            for i in range(6, len(generator_mesh_list)):
+                self.apply_generator(mesh_list, generator_mesh_list[i])
+            return True
+        if cut_pass == 1:
+            for i in range(6, len(generator_mesh_list)):
+                self.apply_generator(mesh_list, generator_mesh_list[i], inverse=True)
+            return False
+
 # TODO: Add Eitan's Star.
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add constrained cube.  It's just a 3x3 with logic needed in the simulator to handle the constraints.  Some additional rendering
