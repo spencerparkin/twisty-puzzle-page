@@ -12,9 +12,7 @@ var viewModel = undefined;
 
 // TODO: Should be able to support decal layer textures for each puzzle.  These overlay any default or override textures, and are used for logos.
 // TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
-// TODO: It should be possible to right-click on a highlighted axis group to assign a letter for the sequence textbox.
-//       In addition to highlighting a group of faces for an axis, I should show a read-out with the label for the axis
-//       that can be used in the sequence textbox.
+// TODO: Fixed, non-contextual labels should exist for all axis that can be used in the sequence textbox.  Can we toggle their render at the pick-points?
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds
