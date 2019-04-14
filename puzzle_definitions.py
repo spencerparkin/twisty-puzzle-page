@@ -1596,6 +1596,38 @@ class EitansStar(PuzzleDefinitionBase):
 
         return mesh_list
 
+class Cubic4x6x8(PuzzleDefinitionBase):
+    def __init__(self):
+        super().__init__()
+
+    def bandages(self):
+        return True
+
+    def make_generator_mesh_list(self):
+        mesh_list = []
+
+        count_list = [3, 2, 4]
+        axis_list = [
+            Vector(1.0, 0.0, 0.0),
+            Vector(0.0, 1.0, 0.0),
+            Vector(0.0, 0.0, 1.0)
+        ]
+
+        for i in range(3):
+            axis = axis_list[i]
+            count = count_list[i]
+            for j in range(count):
+                center = axis * (float(j) / 5.0)
+                mesh = TriangleMesh.make_disk(center, -axis, 4.0, 4)
+                mesh = GeneratorMesh(mesh=mesh, axis=axis, angle=math.pi / 2.0, pick_point=axis + center)
+                mesh_list.append(mesh)
+                center = axis * (-float(j) / 5.0)
+                mesh = TriangleMesh.make_disk(center, axis, 4.0, 4)
+                mesh = GeneratorMesh(mesh=mesh, axis=-axis, angle=math.pi / 2.0, pick_point=-axis + center)
+                mesh_list.append(mesh)
+
+        return mesh_list
+
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add constrained cube.  It's just a 3x3 with logic needed in the simulator to handle the constraints.  Some additional rendering
 #       would be needed to show which way a face can turn, though, which is the crux of implementing this puzzle.  Maybe do this with texture switches.

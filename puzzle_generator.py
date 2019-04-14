@@ -465,6 +465,7 @@ def main():
     from puzzle_definitions import Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8
     from puzzle_definitions import CubesOnDisk, WormHoleII, LatchCube, Rubiks3x3x5
     from puzzle_definitions import MultiCube, SuperStar, DreidelCube, EitansStar
+    from puzzle_definitions import Cubic4x6x8
 
     puzzle_class_list = [
         RubiksCube, FisherCube, FusedCube, CurvyCopter,
@@ -475,7 +476,8 @@ def main():
         Pyraminx, BauhiniaDodecahedron, SkewbUltimate,
         Rubiks2x3x3, Rubiks2x2x3, Crazy2x3x3, Gem8,
         CubesOnDisk, WormHoleII, LatchCube, Rubiks3x3x5,
-        MultiCube, SuperStar, DreidelCube, EitansStar
+        MultiCube, SuperStar, DreidelCube, EitansStar,
+        Cubic4x6x8
     ]
 
     arg_parser = argparse.ArgumentParser()

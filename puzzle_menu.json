@@ -25,6 +25,11 @@
         "puzzle_name": "CubesOnDisk"
     },
     {
+        "puzzle_icon": "images/Cubic4x6x8.png",
+        "puzzle_label": "Cubic4x6x8",
+        "puzzle_name": "Cubic4x6x8"
+    },
+    {
         "puzzle_icon": "images/CurvyCopter.png",
         "puzzle_label": "CurvyCopter",
         "puzzle_name": "CurvyCopter"
