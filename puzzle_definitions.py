@@ -1606,19 +1606,8 @@ class Cubic4x6x8(PuzzleDefinitionBase):
     def make_generator_mesh_list(self):
         mesh_list = []
 
-        # I'm not sure, but we might need the same count for all axes,
-        # but only let some of the generators meshes cut the cube.
-        count_list = [3, 2, 4]
-        axis_list = [
-            Vector(1.0, 0.0, 0.0),
-            Vector(0.0, 1.0, 0.0),
-            Vector(0.0, 0.0, 1.0)
-        ]
-
-        for i in range(3):
-            axis = axis_list[i]
-            count = count_list[i]
-            for j in range(count):
+        for axis in [Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0)]:
+            for j in range(4):
                 center = axis * (float(j) / 5.0)
                 mesh = TriangleMesh.make_disk(center, -axis, 4.0, 4)
                 mesh = GeneratorMesh(mesh=mesh, axis=axis, angle=math.pi / 2.0, pick_point=axis + center)
@@ -1629,6 +1618,14 @@ class Cubic4x6x8(PuzzleDefinitionBase):
                 mesh_list.append(mesh)
 
         return mesh_list
+
+    def can_apply_cutmesh_for_pass(self, i, cut_mesh, cut_pass, generator_mesh_list):
+        if 0 <= i < 8:
+            return True if 0 <= i < 6 else False
+        if 8 <= i < 16:
+            return True if 0 <= i - 8 < 4 else False
+        if 16 <= i < 24:
+            return True if 0 <= i - 16 < 8 else False
 
 # TODO: Add conjoined 3x3 Rubkiks Cubes, a concave shape.
 # TODO: Add constrained cube.  It's just a 3x3 with logic needed in the simulator to handle the constraints.  Some additional rendering
