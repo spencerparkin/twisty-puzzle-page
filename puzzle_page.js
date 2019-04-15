@@ -619,6 +619,13 @@ class Puzzle {
 
         let generator = this.get_selected_generator();
         if(generator) {
+            if(this.bandages) {
+                let move = new PuzzleMove(generator, false, undefined, undefined);
+                let move_inverse = new PuzzleMove(generator, true, undefined, undefined);
+                if(this.move_constrained(move) && this.move_constrained(move_inverse))
+                    return;
+            }
+            
             this.for_captured_meshes(generator, mesh => {
                 mesh.highlight = true;
             });
