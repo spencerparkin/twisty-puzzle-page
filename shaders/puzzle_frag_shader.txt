@@ -15,8 +15,8 @@ void main()
     // TODO: Handle lighting if a uniform says to do so.
 
     vec4 texelColor = texture2D(texture, fragUVs);
-    vec4 color = (1.0 - blendFactor) * vec4(color, 1.0) + blendFactor * texelColor;
+    vec4 color = mix(vec4(color, 1.0), texelColor, blendFactor);
     vec4 highlightColor = vec4(0.5, 0.5, 0.5, 1.0);
 
-    gl_FragColor = (1.0 - highlightFactor) * color + highlightFactor * highlightColor;
+    gl_FragColor = mix(color, highlightColor, highlightFactor);
 }
