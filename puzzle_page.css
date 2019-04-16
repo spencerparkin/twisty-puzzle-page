@@ -70,11 +70,9 @@ body {
     height: 20%;
 }
 
-#puzzle_menu_label {
+.puzzle_label {
     z-index: 2;
     position: fixed;
-    top: 20%;
-    left: 0;
     color: #ffffff;
     display: none;
     background: #555555;
