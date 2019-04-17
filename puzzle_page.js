@@ -12,6 +12,7 @@ var viewModel = undefined;
 
 // TODO: Should be able to support decal layer textures for each puzzle.  These overlay any default or override textures, and are used for logos.
 // TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
+// TODO: Add label freeze feature.  Axis labels should still render at the location of the axes, but the labels should change dynamically as you rotate the puzzle.
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds
