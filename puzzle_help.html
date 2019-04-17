@@ -36,8 +36,43 @@
     </p>
     <h2>Advanced Usage</h2>
     <p>
-        Also in the lower left-hand corner, you'll find a text-box where a sequence may be provided, then executed
-        in the context of the current orientation of the puzzle.  Talk more about this here...
+        Also in the lower left-hand corner, you'll find a text-box where a sequence may be input, then executed.
+        Execution happens in the context of the current orientation of the puzzle, if you are using relative axis-label
+        identifiers, or independent of the current orientation, if you are using fixed axis-label identifiers.
+    </p>
+    <p>
+        The relative axis-label identifiers are the capital letters "L", "R", "D", "U", "B" and "R" or any combination
+        of these letters that makes sense up to a length of 3.  For example, "UR" and "RU" both refer to an upper-right edge,
+        while "URF" and "FRU" both refer to the same upper-right-hand corner in the front face.  Notice that these
+        all assume that the general shape of the puzzle is a cube.  As of this writing, no relative axis-label
+        identifiers are support for non-cube-shaped puzzles.  So the use of these identifiers is limited to those cases.
+    </p>
+    <p>
+        The fixed axis-label identifiers are all lower-case letters.  In the case that a puzzle has more axes than
+        letters of the alphabet, the identifiers become "aa", "bb", "cc" and so on.  Notice a check-box is provided,
+        allowing you to toggle the rendering of these labels.
+    </p>
+    <p>
+        Executable sequences are strings of text of the form, for example, "a, a, b, a, a, b".  Here, the axis
+        labeled "a" is rotated twice, then "b" once, and we repeat this once.  For convenience, such a sequence
+        may be written more compactly as "2[2a,b]".  Square brackets are used to replicate the enclosing sub-sequence
+        a given number of times.  Curly braces, on the other hand, can be used to replicate the individual members
+        of the enclosing sub-sequence.  That is, "2{2a,b}" becomes "4a,2b".  Sub-sequences can be nested to any depth.  
+    </p>
+    <p>
+        A single quote (or prime mark) can be used to invert any identifier or sub-sequence.
+        For example, you might write "a',b" or equivalently "(b,a')'".  This also works on sub-sequences formed
+        using square or curly brackets.
+    </p>
+    <p>
+        The tilde character may be used syntactically in all the same places a single quote can.
+        It's effect is to reverse the sub-sequence.  So "(a,b)~" may be written instead of "b,a".
+    </p>
+    <p>
+        Since solving a puzzle often means finding several useful sequences, and then applying them
+        many times in different contexts, this makes the fixed axis-labels of limited usefulness.  I'm still
+        trying to think of ways to improve the interface.  Perhaps a toggle for freezing the location
+        of the fixed axis-labels, so that you can re-orient the puzzle relative to those labels, would be useful.
     </p>
     <h2>Known Issues</h2>
     <p>
