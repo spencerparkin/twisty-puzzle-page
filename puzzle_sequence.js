@@ -21,11 +21,15 @@ class TreeNode {
         let move_sequence = [];
         
         if(this.identifier.length > 0) {
-            let axis = this._axis_for_notation();
+            let base_move = puzzle.create_move_for_notation(this.identifier);
+            if(!base_move) {
+                let axis = this._axis_for_notation();
+                base_move = puzzle.create_move_for_viewer_axis(axis);
+            }
             
             // Here, repeating and distributing are the same thing.
             for(let i = 0; i < this.quantifier; i++) {
-                let move = puzzle.create_move_for_viewer_axis(axis);
+                let move = base_move.clone();
                 move.inverse = this.inverse;
                 move_sequence.push(move);
             }
@@ -259,35 +263,33 @@ class PuzzleSequenceMoveGenerator {
                     node.inverse = !node.inverse;
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
                     continue;
-                }
-                if(sequence_token_list[sequence_token_list.length - 1].type === 'reverse') {
+                } else if(sequence_token_list[sequence_token_list.length - 1].type === 'reverse') {
                     node.reverse = !node.reverse;
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
                     continue;
-                }
-                break;
-            }
-            
-            if(sequence_token_list.length > 0) {
-                if(sequence_token_list[0].type === 'open curly bracket') {
+                } else if(sequence_token_list[0].type === 'open curly bracket') {
                     if(sequence_token_list[sequence_token_list.length - 1].type !== 'close curly bracket')
                         throw 'Mismatched curly brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.text);
                     node.modifier = 'distribute';
                     sequence_token_list.splice(0, 1);
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
+                    continue;
                 } else if(sequence_token_list[0].type === 'open square bracket') {
                     if(sequence_token_list[sequence_token_list.length - 1].type !== 'close square bracket')
                         throw 'Mismatched square brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.txt);
                     node.modifier = 'repeat';
                     sequence_token_list.splice(0, 1);
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
+                    continue;
                 } else if(sequence_token_list[0].type === 'open round bracket') {
                     if(sequence_token_list[sequence_token_list.length - 1].type !== 'close round bracket')
                         throw 'Mismatched round brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.txt);
                     node.modifier = 'none';
                     sequence_token_list.splice(0, 1);
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
+                    continue;
                 }
+                break;
             }
             
             if(sequence_token_list.length === 1 && sequence_token_list[0].type === 'identifier') {

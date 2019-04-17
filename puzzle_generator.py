@@ -269,10 +269,15 @@ class PuzzleDefinitionBase(object):
     def generate_puzzle_file(self):
         with ProfileBlock('Generate meshes'):
             final_mesh_list, initial_mesh_list, generator_mesh_list = self.generate_final_mesh_list()
-            i = 97
+            alphabet = 'abcdefghijklmnopqrstuvwxyz'
+            i = 0
+            j = 1
             for mesh in generator_mesh_list:
-                mesh.fixed_label = chr(i)   # TODO: Some puzzles may have more than 26 axes.
+                mesh.fixed_label = alphabet[i] * j
                 i += 1
+                if i >= len(alphabet):
+                    i = 0
+                    j += 1
 
         with ProfileBlock('Calculate UVs'):
             self.calculate_uvs(final_mesh_list)

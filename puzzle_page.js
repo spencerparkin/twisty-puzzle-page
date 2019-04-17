@@ -12,7 +12,6 @@ var viewModel = undefined;
 
 // TODO: Should be able to support decal layer textures for each puzzle.  These overlay any default or override textures, and are used for logos.
 // TODO: Add lighting checkbox.  Not sure if we'll ever care to light the puzzle, actually.
-// TODO: Fixed, non-contextual labels should exist for all axis that can be used in the sequence textbox.  Can we toggle their render at the pick-points?
 
 // Note that knockout's dependency graph requires computed members to
 // call one or more observable functions.  This is how knockout builds
@@ -21,6 +20,7 @@ var ViewModel = function() {
     this.sequence_text = ko.observable('');
     this.apply_textures = ko.observable(false);
     this.show_reflection = ko.observable(false);
+    this.show_axis_labels = ko.observable(false);
     this.move_queue = ko.observableArray([]);
     this.undo_move_list = ko.observableArray([]);
     this.redo_move_list = ko.observableArray([]);
@@ -209,6 +209,20 @@ function mat4_rotate_about_center(result, center, axis, angle) {
     mat4.multiply(result, translation_matrix, result);
 }
 
+function screen_space_to_projection_space(projection_point, screen_point) {
+    let canvas = $('#puzzle_canvas')[0];
+    projection_point[0] = -1.0 + 2.0 * screen_point[0] / canvas.width;
+    projection_point[1] = -1.0 + 2.0 * (1.0 - screen_point[1] / canvas.height);
+    projection_point[2] = screen_point[2];
+}
+
+function projection_space_to_screen_space(screen_point, projection_point) {
+    let canvas = $('#puzzle_canvas')[0];
+    screen_point[0] = ((projection_point[0] + 1.0) / 2.0) * canvas.width;
+    screen_point[1] = (1.0 - (projection_point[1] + 1.0) / 2.0) * canvas.height;
+    screen_point[2] = projection_point[2];
+}
+
 class PuzzleMesh extends StaticTriangleMesh {
     constructor(mesh_data) {
         super();
@@ -393,9 +407,52 @@ class PuzzleGenerator {
             this.plane_list.push(plane);
         }
         this.special_case_data = 'special_case_data' in generator_data ? generator_data.special_case_data : undefined;
+        this.fixed_label = generator_data.fixed_label;
+        $('<div id="puzzle_label_' + generator_data.fixed_label + '" class="puzzle_label">' + generator_data.fixed_label + '</div>').appendTo('#puzzle_axis_labels_container');
+        let axis_label = $('#puzzle_label_' + this.fixed_label)[0];
+        axis_label.addEventListener('wheel', this.axis_label_mouse_wheel_moved.bind(this));
+        axis_label.addEventListener('click', this.axis_label_clicked.bind(this));
     }
 
     release() {
+    }
+    
+    axis_label_mouse_wheel_moved(event) {
+        canvas_mouse_wheel_move(event);
+    }
+    
+    axis_label_clicked(event) {
+        let sequence_text = viewModel.sequence_text();
+        let label = this.fixed_label;
+        if(shift_key_down)
+            label += "'";
+        if(!sequence_text)
+            viewModel.sequence_text(label);
+        else
+            viewModel.sequence_text(sequence_text + ',' + label);
+    }
+    
+    show_axis_label(visible) {
+        let axis_label = $('#puzzle_label_' + this.fixed_label);
+        if(visible)
+            axis_label.fadeIn('slow');
+        else
+            axis_label.fadeOut('slow');
+    }
+    
+    update_axis_label_position(transform_matrix) {
+        if(this.pick_point) {
+            let projected_point = vec3.create();
+            vec3.transformMat4(projected_point, this.pick_point, transform_matrix);
+            projected_point[2] = 0.0;
+            
+            let screen_point = vec3.create();
+            projection_space_to_screen_space(screen_point, projected_point);
+            
+            let axis_label = $('#puzzle_label_' + this.fixed_label)[0];
+            axis_label.style.left = Math.round(screen_point[0] - axis_label.offsetWidth / 2.0) + 'px';
+            axis_label.style.top = Math.round(screen_point[1] - axis_label.offsetHeight / 2.0) + 'px';
+        }
     }
     
     calc_side(point, eps=1e-7) {
@@ -505,6 +562,8 @@ class Puzzle {
             texture.release();
         }
         this.custom_texture_list = [];
+        
+        $('#puzzle_axis_labels_container').empty();
     }
     
     promise() {
@@ -563,6 +622,20 @@ class Puzzle {
             let mesh = this.mesh_list[i];
             mesh.render(this.custom_texture_list);
         }
+        
+        if(!reflect && viewModel.show_axis_labels())
+            this.update_axis_label_positions(transform_matrix);
+    }
+
+    update_axis_label_visibility() {
+        let visible = viewModel.show_axis_labels();
+        for(let i = 0; i < this.generator_list.length; i++)
+            this.generator_list[i].show_axis_label(visible);
+    }
+
+    update_axis_label_positions(transform_matrix) {
+        for(let i = 0; i < this.generator_list.length; i++)
+            this.generator_list[i].update_axis_label_position(transform_matrix);
     }
 
     create_move_for_viewer_axis(axis) {
@@ -578,6 +651,15 @@ class Puzzle {
         });
         
         return new PuzzleMove(generator, false, undefined, 'history');
+    }
+    
+    create_move_for_notation(label) {
+        for(let i = 0; i < this.generator_list.length; i++) {
+            let generator = this.generator_list[i];
+            if(generator.fixed_label === label)
+                return new PuzzleMove(generator, false, undefined, 'history');
+        }
+        return undefined;
     }
 
     pick_generator(projected_mouse_point) {
@@ -820,6 +902,7 @@ function puzzle_menu_item_chosen_callback(puzzle_name) {
         $('#loading_gif').hide();
         shuffle_list(puzzle_texture_list);
         viewModel.clear_all();
+        puzzle.update_axis_label_visibility();
         render_scene();
     });   
 }
@@ -926,13 +1009,11 @@ function canvas_mouse_move(event) {
 
         render_scene();
     } else {
-        let canvas = $('#puzzle_canvas')[0];
-
-        let x = -1.0 + 2.0 * event.offsetX / canvas.width;
-        let y = -1.0 + 2.0 * (1.0 - event.offsetY / canvas.height);
-
+        let mouse_point = vec3.create();
+        vec3.set(mouse_point, event.offsetX, event.offsetY, 0.0);
+        
         let projected_mouse_point = vec3.create();
-        vec3.set(projected_mouse_point, x, y, 0.0);
+        screen_space_to_projection_space(projected_mouse_point, mouse_point);
 
         if(puzzle.pick_generator(projected_mouse_point))
             render_scene();
@@ -1067,6 +1148,11 @@ function document_ready() {
                 });
                 
                 viewModel.show_reflection.subscribe(function(newValue) {
+                    render_scene();
+                });
+                
+                viewModel.show_axis_labels.subscribe(function(newValue) {
+                    puzzle.update_axis_label_visibility();
                     render_scene();
                 });
                 
