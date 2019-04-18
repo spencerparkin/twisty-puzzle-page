@@ -252,7 +252,9 @@ class PuzzleSequenceMoveGenerator {
                 node.children.push(this._parse_sequence_token_list(sequence_list[i]));
         } else if(sequence_list.length == 1) {
             sequence_token_list = sequence_list[0];
-            
+
+            let initial_length = sequence_token_list.length;
+
             if(sequence_token_list.length > 0 && sequence_token_list[0].type === 'number') {
                 node.quantifier = parseInt(sequence_token_list[0].text);
                 sequence_token_list.splice(0, 1);
@@ -267,34 +269,37 @@ class PuzzleSequenceMoveGenerator {
                     node.reverse = !node.reverse;
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
                     continue;
-                } else if(sequence_token_list[0].type === 'open curly bracket') {
+                }
+                break;
+            }
+
+            if(sequence_token_list.length > 0) {
+                if(sequence_token_list[0].type === 'open curly bracket') {
                     if(sequence_token_list[sequence_token_list.length - 1].type !== 'close curly bracket')
                         throw 'Mismatched curly brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.text);
                     node.modifier = 'distribute';
                     sequence_token_list.splice(0, 1);
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
-                    continue;
                 } else if(sequence_token_list[0].type === 'open square bracket') {
                     if(sequence_token_list[sequence_token_list.length - 1].type !== 'close square bracket')
-                        throw 'Mismatched square brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.txt);
+                        throw 'Mismatched square brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.text);
                     node.modifier = 'repeat';
                     sequence_token_list.splice(0, 1);
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
-                    continue;
                 } else if(sequence_token_list[0].type === 'open round bracket') {
                     if(sequence_token_list[sequence_token_list.length - 1].type !== 'close round bracket')
-                        throw 'Mismatched round brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.txt);
+                        throw 'Mismatched round brackets at ' + sequence_token_list.reduce((substr, token) => substr + token.text);
                     node.modifier = 'none';
                     sequence_token_list.splice(0, 1);
                     sequence_token_list.splice(sequence_token_list.length - 1, 1);
-                    continue;
                 }
-                break;
             }
+
+            let final_length = sequence_token_list.length;
             
             if(sequence_token_list.length === 1 && sequence_token_list[0].type === 'identifier') {
                 node.identifier = sequence_token_list[0].text;
-            } else if(sequence_token_list.find(token => token.type === 'delimiter')) {
+            } else if(final_length < initial_length) {
                 node.children.push(this._parse_sequence_token_list(sequence_token_list));
             } else {
                 throw 'Can\'t parse sub-string: ' + sequence_token_list.reduce((substr, token) => substr + token.text);
