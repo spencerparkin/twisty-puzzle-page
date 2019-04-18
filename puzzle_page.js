@@ -22,6 +22,7 @@ var ViewModel = function() {
     this.apply_textures = ko.observable(false);
     this.show_reflection = ko.observable(false);
     this.show_axis_labels = ko.observable(false);
+    this.freeze_axis_labels = ko.observable(false);
     this.move_queue = ko.observableArray([]);
     this.undo_move_list = ko.observableArray([]);
     this.redo_move_list = ko.observableArray([]);
@@ -409,6 +410,8 @@ class PuzzleGenerator {
         }
         this.special_case_data = 'special_case_data' in generator_data ? generator_data.special_case_data : undefined;
         this.fixed_label = generator_data.fixed_label;
+        this.dynamic_label = undefined;
+        this.frozen_world_point = vec3.create();
         $('<div id="puzzle_label_' + generator_data.fixed_label + '" class="puzzle_label">' + generator_data.fixed_label + '</div>').appendTo('#puzzle_axis_labels_container');
         let axis_label = $('#puzzle_label_' + this.fixed_label)[0];
         axis_label.addEventListener('wheel', this.axis_label_mouse_wheel_moved.bind(this));
@@ -441,7 +444,7 @@ class PuzzleGenerator {
             axis_label.fadeOut('slow');
     }
     
-    update_axis_label_position(transform_matrix) {
+    update_axis_label_for_rendering(transform_matrix) {
         if(this.pick_point) {
             let projected_point = vec3.create();
             vec3.transformMat4(projected_point, this.pick_point, transform_matrix);
@@ -453,7 +456,23 @@ class PuzzleGenerator {
             let axis_label = $('#puzzle_label_' + this.fixed_label)[0];
             axis_label.style.left = Math.round(screen_point[0] - axis_label.offsetWidth / 2.0) + 'px';
             axis_label.style.top = Math.round(screen_point[1] - axis_label.offsetHeight / 2.0) + 'px';
+            
+            if(!viewModel.freeze_axis_labels()) {
+                axis_label.innerHTML = this.fixed_label;
+            } else {
+                axis_label.innerHTML = this.dynamic_label;
+            }
         }
+    }
+    
+    freeze_axis_label(transform_matrix) {
+        if(this.pick_point)
+            vec3.transformMat4(this.frozen_world_point, this.pick_point, transform_matrix);
+    }
+    
+    unfreeze_axis_label() {
+        this.frozen_world_point = vec3.create();
+        this.dynamic_label = undefined;
     }
     
     calc_side(point, eps=1e-7) {
@@ -625,7 +644,7 @@ class Puzzle {
         }
         
         if(!reflect && viewModel.show_axis_labels())
-            this.update_axis_label_positions(transform_matrix);
+            this.update_axis_labels_for_rendering(transform_matrix);
     }
 
     update_axis_label_visibility() {
@@ -634,9 +653,56 @@ class Puzzle {
             this.generator_list[i].show_axis_label(visible);
     }
 
-    update_axis_label_positions(transform_matrix) {
+    _find_best_dynamic_label_assignment(label_map, unassigned_generator_list) {
+        let smallest_distance = 9999999.0;
+        let found_label = undefined;
+        let found_generator = undefined;
+        for(let i = 0; i < unassigned_generator_list.length; i++) {
+            let generator = unassigned_generator_list[i];
+            let point = vec3.create();
+            vec3.transformMat4(point, generator.pick_point, this.orient_matrix);
+            for(let label in label_map) {
+                let frozen_world_point = label_map[label];
+                let distance = vec3.distance(point, frozen_world_point);
+                if(distance < smallest_distance) {
+                    smallest_distance = distance;
+                    found_label = label;
+                    found_generator = generator;
+                }
+            }
+        }
+        delete label_map[found_label];
+        let i = unassigned_generator_list.indexOf(found_generator);
+        unassigned_generator_list.splice(i, 1);
+        found_generator.dynamic_label = found_label;
+    }
+
+    update_axis_labels_for_rendering(transform_matrix) {
+        if(viewModel.freeze_axis_labels()) { 
+            let label_map = {};
+            let unassigned_generator_list = [];
+            for(let i = 0; i < this.generator_list.length; i++) {
+                let generator = this.generator_list[i];
+                if(generator.pick_point) {
+                    label_map[generator.fixed_label] = generator.frozen_world_point;
+                    unassigned_generator_list.push(generator);
+                }
+            }
+            while(Object.keys(label_map).length > 0 && unassigned_generator_list.length > 0)
+                this._find_best_dynamic_label_assignment(label_map, unassigned_generator_list);
+        }
         for(let i = 0; i < this.generator_list.length; i++)
-            this.generator_list[i].update_axis_label_position(transform_matrix);
+            this.generator_list[i].update_axis_label_for_rendering(transform_matrix);
+    }
+
+    freeze_axis_labels() {
+        for(let i = 0; i < this.generator_list.length; i++)
+            this.generator_list[i].freeze_axis_label(this.orient_matrix);
+    }
+    
+    unfreeze_axis_labels() {
+        for(let i = 0; i < this.generator_list.length; i++)
+            this.generator_list[i].unfreeze_axis_label();
     }
 
     create_move_for_viewer_axis(axis) {
@@ -657,7 +723,12 @@ class Puzzle {
     create_move_for_notation(label) {
         for(let i = 0; i < this.generator_list.length; i++) {
             let generator = this.generator_list[i];
-            if(generator.fixed_label === label)
+            let found = false;
+            if(viewModel.freeze_axis_labels() && generator.dynamic_label === label)
+                found = true;
+            if(!viewModel.freeze_axis_labels() && generator.fixed_label === label)
+                found = true;
+            if(found)
                 return new PuzzleMove(generator, false, undefined, 'history');
         }
         return undefined;
@@ -903,6 +974,7 @@ function puzzle_menu_item_chosen_callback(puzzle_name) {
         $('#loading_gif').hide();
         shuffle_list(puzzle_texture_list);
         viewModel.clear_all();
+        viewModel.freeze_axis_labels(false);
         puzzle.update_axis_label_visibility();
         render_scene();
     });   
@@ -1154,6 +1226,14 @@ function document_ready() {
                 
                 viewModel.show_axis_labels.subscribe(function(newValue) {
                     puzzle.update_axis_label_visibility();
+                    render_scene();
+                });
+                
+                viewModel.freeze_axis_labels.subscribe(function(newValue) {
+                    if(newValue)
+                        puzzle.freeze_axis_labels();
+                    else
+                        puzzle.unfreeze_axis_labels();
                     render_scene();
                 });
                 

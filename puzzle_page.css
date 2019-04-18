@@ -25,7 +25,7 @@ body {
 #puzzle_controls {
     z-index: 1;
     position: absolute;
-    top: calc(100% - 240px);
+    top: calc(100% - 270px);
     height: 15%;
     left: 0%;
     width: 30%;
