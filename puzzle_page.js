@@ -982,24 +982,22 @@ function puzzle_menu_item_chosen_callback(puzzle_name) {
 
 function canvas_mouse_wheel_move(event) {
     event.preventDefault();
+    if(event.deltaY < 0) {
+        handle_user_move(false);
+    } else if(event.deltaY > 0) {
+        handle_user_move(true);
+    }
+}
 
+function handle_user_move(inverse) {
     let generator = puzzle.get_selected_generator();
     if(generator) {
         if((puzzle.name == 'CurvyCopter' || puzzle.name == 'CurvyCopterPlus' || puzzle.name == 'HelicopterCube' || puzzle.name == 'FlowerCopter') && (shift_key_down || ctrl_key_down) && generator.special_case_data) {
             curvy_copter_special_move(event, generator);
         } else {
-            let move = undefined;
-    
-            if(event.deltaY < 0) {
-                move = new PuzzleMove(generator, false, undefined, 'history');
-            } else if(event.deltaY > 0) {
-                move = new PuzzleMove(generator, true, undefined, 'history');
-            }
-    
-            if(move) {
-                viewModel.move_queue.push(move);
-                viewModel.clear_redo_list();
-            }
+            let move = new PuzzleMove(generator, inverse, undefined, 'history');
+            viewModel.move_queue.push(move);
+            viewModel.clear_redo_list();
         }
     }
 }
@@ -1253,4 +1251,13 @@ var ctrl_key_down = false;
 $(document).on('keyup keydown', event => {
     shift_key_down = event.shiftKey;
     ctrl_key_down = event.ctrlKey;
+});
+
+$(document).on('keypress', event => {
+    let key = event.which;
+    if(key === 'A'.charCodeAt(0) || key === 'a'.charCodeAt(0)) {
+        handle_user_move(true);
+    } else if(key === 'F'.charCodeAt(0) || key === 'f'.charCodeAt(0)) {
+        handle_user_move(false);
+    }
 });
