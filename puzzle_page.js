@@ -589,8 +589,9 @@ class Puzzle {
     promise() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: 'puzzle',
-                data: {'name': this.name},
+                //url: 'puzzle',
+                //data: {'name': this.name},
+                url: 'puzzles/' + this.name + '.json.gz',
                 dataType: 'json',
                 success: puzzle_data => {
                     if('error' in puzzle_data) {
