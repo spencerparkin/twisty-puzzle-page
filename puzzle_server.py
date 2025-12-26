@@ -20,17 +20,21 @@ class PuzzleServer(object):
 
 if __name__ == '__main__':
     root_dir = os.path.dirname(os.path.abspath(__file__))
-    port = int(os.environ.get('PORT', 5200))
+    port = int(os.environ.get('PORT', 5100))
     server = PuzzleServer(root_dir)
     config = {
         'global': {
-            'server.socket_host': '0.0.0.0',
+            'server.socket_host': '127.0.0.1', #'0.0.0.0',
             'server.socket_port': port,
         },
         '/': {
             'tools.staticdir.root': root_dir,
             'tools.staticdir.on': True,
             'tools.staticdir.dir': '',
+        },
+        '/puzzles': {
+            'tools.staticdir.on': False,
+            'tools.staticfile.on': False,
         }
     }
     cherrypy.quickstart(server, '/', config=config)

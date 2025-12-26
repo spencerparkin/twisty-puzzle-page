@@ -1,1 +1,14 @@
-cherrypy==11.0.0
+autocommand==2.2.2
+cheroot==11.1.2
+CherryPy==18.10.0
+jaraco.collections==5.2.1
+jaraco.context==6.0.2
+jaraco.functools==4.4.0
+jaraco.text==4.0.0
+more-itertools==10.8.0
+portend==3.2.1
+python-dateutil==2.9.0.post0
+setuptools==80.9.0
+six==1.17.0
+tempora==5.8.1
+zc.lockfile==4.0
